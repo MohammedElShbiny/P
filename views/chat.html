@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en" class="dark" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chat — DEMO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        surface: { DEFAULT: '#051424' },
+        'surface-container': { DEFAULT: '#122131', low: '#0d1c2d', high: '#1c2b3c' },
+        'on-surface': { DEFAULT: '#d4e4fa', variant: '#c1c6d7' },
+        outline: { DEFAULT: '#8b90a0', variant: '#414754' },
+        primary: { DEFAULT: '#aec6ff', container: '#0070f3' },
+        secondary: { DEFAULT: '#4ae176', container: '#00b954' },
+      },
+      fontFamily: {
+        sans: ['Inter', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace'],
+      },
+    }
+  }
+}
+</script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #051424; color: #d4e4fa; }
+  .glass-panel { background: rgba(18, 33, 49, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.06); }
+  #loginOverlay { position: fixed; inset: 0; z-index: 100; background: #051424; display: flex; align-items: center; justify-content: center; }
+  .msg-admin { background: rgba(0,112,243,0.15); border: 1px solid rgba(0,112,243,0.3); }
+  .msg-user { background: rgba(74,225,118,0.1); border: 1px solid rgba(74,225,118,0.2); }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .msg-anim { animation: fadeUp 0.25s ease-out; }
+  #messagesContainer { scroll-behavior: smooth; }
+  input:focus { border-color: #0070f3 !important; box-shadow: 0 0 0 2px rgba(0,112,243,0.2); }
+</style>
+</head>
+<body class="min-h-screen flex items-center justify-center">
+
+<!-- INVALID TOKEN -->
+<div id="invalidToken" class="hidden text-center p-8">
+  <div class="glass-panel rounded-xl p-8 max-w-sm mx-auto">
+    <span class="material-symbols-outlined" style="font-size:48px;color:#ffb4ab;">error</span>
+    <h2 class="text-xl font-bold mt-4 mb-2">Invalid Chat Link</h2>
+    <p class="text-sm" style="color:#8b90a0;">This chat link is invalid or has expired. Please submit a new inquiry.</p>
+    <a href="/" class="inline-block mt-4 px-6 py-2 rounded-lg text-sm font-semibold text-white" style="background:#0070f3;">Go to Homepage</a>
+  </div>
+</div>
+
+<!-- CHAT APP -->
+<div id="chatApp" class="hidden w-full max-w-2xl mx-4 flex flex-col" style="height:90vh;">
+  <!-- Header -->
+  <div class="glass-panel rounded-t-xl p-4 flex items-center justify-between" style="border-bottom:1px solid rgba(255,255,255,0.06);">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background:#0070f3;">
+        <span class="text-white font-mono font-bold text-sm">D</span>
+      </div>
+      <div>
+        <h1 class="font-bold text-sm">DEMO Support</h1>
+        <p class="text-xs" style="color:#8b90a0;" id="chatSubtitle">Chat with us about your project</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="w-2.5 h-2.5 rounded-full" style="background:#4ae176;" id="onlineDot"></span>
+      <span class="text-xs font-mono" style="color:#4ae176;">Online</span>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div id="messagesContainer" class="flex-1 overflow-y-auto p-4 space-y-3" style="background:rgba(5,20,36,0.5);">
+    <div class="text-center py-8">
+      <p class="text-sm" style="color:#8b90a0;">Loading messages...</p>
+    </div>
+  </div>
+
+  <!-- Input -->
+  <div class="glass-panel rounded-b-xl p-4" style="border-top:1px solid rgba(255,255,255,0.06);">
+    <form id="messageForm" class="flex gap-3">
+      <input type="text" id="messageInput" placeholder="Type your message..." class="flex-1 px-4 py-3 rounded-lg text-sm" style="background:#0d1c2d;border:1px solid #414754;color:#d4e4fa;" autocomplete="off">
+      <button type="submit" class="px-5 py-3 rounded-lg font-semibold text-white flex items-center gap-2" style="background:#0070f3;">
+        <span class="material-symbols-outlined" style="font-size:20px;">send</span>
+      </button>
+    </form>
+  </div>
+</div>
+
+<script>
+let sessionToken = '';
+let inquiryData = null;
+let pollInterval = null;
+
+const params = new URLSearchParams(window.location.search);
+sessionToken = params.get('token');
+
+if (!sessionToken) {
+  document.getElementById('invalidToken').classList.remove('hidden');
+} else {
+  initChat();
+}
+
+async function initChat() {
+  try {
+    const res = await fetch('/api/chat/' + sessionToken);
+    if (!res.ok) {
+      document.getElementById('invalidToken').classList.remove('hidden');
+      return;
+    }
+    const data = await res.json();
+    inquiryData = data.inquiry;
+    document.getElementById('chatSubtitle').textContent = 'Chat with us about your project — ' + inquiryData.name;
+    document.getElementById('chatApp').classList.remove('hidden');
+    document.getElementById('chatApp').classList.add('flex');
+    renderMessages(data.messages);
+    startPolling();
+  } catch (err) {
+    document.getElementById('invalidToken').classList.remove('hidden');
+  }
+}
+
+function renderMessages(messages) {
+  const container = document.getElementById('messagesContainer');
+  if (!messages.length) {
+    container.innerHTML = '<div class="text-center py-8"><p class="text-sm" style="color:#8b90a0;">No messages yet. Send a message to start the conversation!</p></div>';
+    return;
+  }
+  container.innerHTML = messages.map(m => `
+    <div class="flex ${m.sender === 'admin' ? 'justify-start' : 'justify-end'} msg-anim">
+      <div class="${m.sender === 'admin' ? 'msg-admin' : 'msg-user'} rounded-xl px-4 py-3 max-w-xs md:max-w-md">
+        <p class="text-sm" style="color:#d4e4fa;">${escapeHtml(m.message)}</p>
+        <p class="text-xs mt-1 font-mono" style="color:#8b90a0;">${formatTime(m.created_at)}${m.sender === 'admin' ? ' · DEMO' : ''}</p>
+      </div>
+    </div>
+  `).join('');
+  container.scrollTop = container.scrollHeight;
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function formatTime(ts) {
+  if (!ts) return '';
+  const d = new Date(ts + 'Z');
+  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+document.getElementById('messageForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const input = document.getElementById('messageInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  try {
+    await fetch('/api/chat/' + sessionToken, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: msg })
+    });
+    const res = await fetch('/api/chat/' + sessionToken);
+    const data = await res.json();
+    renderMessages(data.messages);
+  } catch (err) {
+    console.error('Send error:', err);
+  }
+});
+
+function startPolling() {
+  pollInterval = setInterval(async () => {
+    try {
+      const res = await fetch('/api/chat/' + sessionToken + '/unread');
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.unread && data.unread.length > 0) {
+        const fullRes = await fetch('/api/chat/' + sessionToken);
+        const fullData = await fullRes.json();
+        renderMessages(fullData.messages);
+        showNotification(data.unread.length);
+      }
+    } catch (err) {}
+  }, 3000);
+}
+
+function showNotification(count) {
+  if (Notification.permission === 'granted') {
+    new Notification('DEMO Support', {
+      body: count + ' new message' + (count > 1 ? 's' : '') + ' from support',
+      icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="%230070f3"/><text x="50" y="65" font-size="50" text-anchor="middle" fill="white" font-family="monospace" font-weight="bold">D</text></svg>'
+    });
+  }
+  if ('vibrate' in navigator) navigator.vibrate(200);
+}
+
+if ('Notification' in window && Notification.permission === 'default') {
+  Notification.requestPermission();
+}
+</script>
+</body>
+</html>

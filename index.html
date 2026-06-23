@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en" class="dark" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DEMO — Core Systems Portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&family=Noto+Sans+Arabic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        surface: { DEFAULT: '#051424', dim: '#051424', bright: '#2c3a4c' },
+        'surface-container': { DEFAULT: '#122131', low: '#0d1c2d', high: '#1c2b3c', highest: '#273647', lowest: '#010f1f' },
+        'on-surface': { DEFAULT: '#d4e4fa', variant: '#c1c6d7' },
+        outline: { DEFAULT: '#8b90a0', variant: '#414754' },
+        primary: { DEFAULT: '#aec6ff', container: '#0070f3', 'on-container': '#ffffff', dim: '#0059c5' },
+        'on-primary': '#002e6b',
+        secondary: { DEFAULT: '#4ae176', container: '#00b954' },
+        'on-secondary': '#003915',
+        tertiary: { DEFAULT: '#c9beff', container: '#7759fb' },
+        'on-tertiary': '#30009b',
+        error: { DEFAULT: '#ffb4ab', container: '#93000a' },
+      },
+      fontFamily: {
+        sans: ['Inter', 'Noto Sans Arabic', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace'],
+        arabic: ['Noto Sans Arabic', 'Inter', 'sans-serif'],
+      },
+      borderRadius: { sm: '0.125rem', md: '0.375rem', lg: '0.5rem', xl: '0.75rem', full: '9999px' },
+      maxWidth: { site: '1280px' },
+    }
+  }
+}
+</script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', 'Noto Sans Arabic', sans-serif; background: #051424; color: #d4e4fa; overflow-x: hidden; }
+  html.light body { background: #ffffff; color: #1e293b; }
+  .glass-panel { background: rgba(18, 33, 49, 0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.06); }
+  html.light .glass-panel { background: rgba(248, 250, 252, 0.8); border: 1px solid #e2e8f0; }
+  .tab-content { display: none; animation: fadeUp 0.35s ease-out; }
+  .tab-content.active { display: block; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+  .float-anim { animation: float 3s ease-in-out infinite; }
+  .text-gradient { background: linear-gradient(135deg, #0070f3, #7759fb, #4ae176); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .browser-dots span { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .browser-dots span:nth-child(1) { background: #ff5f57; }
+  .browser-dots span:nth-child(2) { background: #febc2e; margin-inline-start: 6px; }
+  .browser-dots span:nth-child(3) { background: #28c840; margin-inline-start: 6px; }
+  .progress-bar { height: 6px; border-radius: 9999px; background: rgba(255,255,255,0.08); overflow: hidden; }
+  html.light .progress-bar { background: #e2e8f0; }
+  .progress-fill { height: 100%; border-radius: 9999px; transition: width 0.8s ease-out; }
+  .nav-tab { position: relative; padding: 8px 16px; border-radius: 9999px; font-weight: 500; font-size: 14px; transition: all 0.2s; cursor: pointer; background: transparent; color: #8b90a0; border: none; }
+  .nav-tab:hover { color: #d4e4fa; }
+  html.light .nav-tab:hover { color: #1e293b; }
+  .nav-tab.active { background: #0070f3; color: #ffffff; }
+  .toggle-btn { width: 44px; height: 28px; border-radius: 9999px; border: 1px solid #414754; background: #122131; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s; position: relative; }
+  html.light .toggle-btn { background: #f1f5f9; border-color: #cbd5e1; }
+  .toggle-dot { width: 20px; height: 20px; border-radius: 50%; background: #0070f3; transition: transform 0.3s; position: absolute; }
+  .lang-btn { padding: 4px 12px; border-radius: 9999px; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid #414754; background: #122131; color: #8b90a0; transition: all 0.2s; }
+  .lang-btn.active { background: #0070f3; color: #ffffff; border-color: #0070f3; }
+  html.light .lang-btn { background: #f1f5f9; border-color: #cbd5e1; color: #64748b; }
+  html.light .lang-btn.active { background: #0070f3; color: #fff; border-color: #0070f3; }
+  .pricing-popular { position: relative; }
+  .pricing-popular::before { content: 'Most Popular'; position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: #0070f3; color: #fff; font-size: 11px; font-weight: 600; padding: 3px 12px; border-radius: 9999px; font-family: 'JetBrains Mono', monospace; }
+  html[dir="rtl"] .pricing-popular::before { content: 'الأكثر طلباً'; }
+  .cta-glow { box-shadow: 0 0 20px rgba(0, 112, 243, 0.3); }
+  .cta-glow:hover { box-shadow: 0 0 30px rgba(0, 112, 243, 0.5); }
+  input, textarea, select { outline: none; }
+  input:focus, textarea:focus, select:focus { border-color: #0070f3 !important; box-shadow: 0 0 0 2px rgba(0,112,243,0.2); }
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- NAVBAR -->
+<nav class="fixed top-0 inset-x-0 z-50 glass-panel" style="border-block-end: 1px solid rgba(255,255,255,0.06);">
+  <div class="max-w-site mx-auto flex items-center justify-between px-4 md:px-16 h-16">
+    <!-- Logo -->
+    <div class="flex items-center gap-2">
+      <div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center">
+        <span class="text-white font-mono font-bold text-sm">D</span>
+      </div>
+      <span class="font-mono font-bold text-lg tracking-tight text-on-surface">DEMO</span>
+    </div>
+    <!-- Tabs -->
+    <div class="hidden md:flex items-center gap-1">
+      <button class="nav-tab active" data-tab="home" data-en="Home" data-ar="الرئيسية">Home</button>
+      <button class="nav-tab" data-tab="about" data-en="About" data-ar="عني">About</button>
+      <button class="nav-tab" data-tab="projects" data-en="Projects" data-ar="المشاريع">Projects</button>
+      <button class="nav-tab" data-tab="services" data-en="Services" data-ar="الخدمات">Services</button>
+      <button class="nav-tab" data-tab="contact" data-en="Contact" data-ar="تواصل">Contact</button>
+    </div>
+    <!-- Controls -->
+    <div class="flex items-center gap-3">
+      <button class="lang-btn active" id="langToggle" data-lang="en">EN</button>
+      <button class="toggle-btn" id="themeToggle" aria-label="Toggle theme">
+        <span class="toggle-dot" id="themeDot"></span>
+      </button>
+      <!-- Mobile menu -->
+      <button class="md:hidden" id="mobileMenuBtn" aria-label="Menu">
+        <span class="material-symbols-outlined text-on-surface" style="font-size:28px;">menu</span>
+      </button>
+    </div>
+  </div>
+  <!-- Mobile Menu -->
+  <div id="mobileMenu" class="hidden md:hidden px-4 pb-4 flex flex-col gap-2">
+    <button class="nav-tab active w-full text-start" data-tab="home" data-en="Home" data-ar="الرئيسية">Home</button>
+    <button class="nav-tab w-full text-start" data-tab="about" data-en="About" data-ar="عني">About</button>
+    <button class="nav-tab w-full text-start" data-tab="projects" data-en="Projects" data-ar="المشاريع">Projects</button>
+    <button class="nav-tab w-full text-start" data-tab="services" data-en="Services" data-ar="الخدمات">Services</button>
+    <button class="nav-tab w-full text-start" data-tab="contact" data-en="Contact" data-ar="تواصل">Contact</button>
+  </div>
+</nav>
+
+<!-- MAIN CONTENT -->
+<main class="pt-20 pb-16 px-4 md:px-16 max-w-site mx-auto min-h-screen">
+
+  <!-- ==================== TAB: HOME ==================== -->
+  <section class="tab-content active" id="tab-home">
+    <!-- Hero -->
+    <div class="flex flex-col items-center text-center py-12 md:py-24 gap-6">
+      <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-panel text-sm font-mono text-primary" style="color:#aec6ff;">
+        <span class="material-symbols-outlined" style="font-size:18px;">terminal</span>
+        <span data-en="Full Stack Systems Architect" data-ar="مهندس أنظمة متكامل">Full Stack Systems Architect</span>
+      </div>
+      <h1 class="text-4xl md:text-6xl lg:text-7xl font-extrabold leading-tight tracking-tight" style="letter-spacing:-0.02em;">
+        <span data-en="Building the future with" data-ar="نبني المستقبل بـ">Building the future with</span><br>
+        <span class="text-gradient" data-en="Code, AI & Systems" data-ar="الكود والذكاء والأنظمة">Code, AI & Systems</span>
+      </h1>
+      <p class="text-on-surface-variant max-w-xl text-lg leading-relaxed" style="color:#c1c6d7;" data-en="High-performance full-stack development powered by AI. From intelligent dashboards to production-ready systems." data-ar="تطوير متكامل عالي الأداء مدعوم بالذكاء الاصطناعي. من لوحات التحكم الذكية إلى الأنظمة الجاهزة للإنتاج.">
+        High-performance full-stack development powered by AI. From intelligent dashboards to production-ready systems.
+      </p>
+      <!-- Tech Pills -->
+      <div class="flex flex-wrap justify-center gap-2 mt-2">
+        <span class="px-3 py-1.5 rounded-md font-mono text-xs font-semibold bg-surface-container-highest text-primary" style="background:#273647;color:#aec6ff;">React</span>
+        <span class="px-3 py-1.5 rounded-md font-mono text-xs font-semibold" style="background:#273647;color:#4ae176;">Node.js</span>
+        <span class="px-3 py-1.5 rounded-md font-mono text-xs font-semibold" style="background:#273647;color:#c9beff;">TypeScript</span>
+        <span class="px-3 py-1.5 rounded-md font-mono text-xs font-semibold" style="background:#273647;color:#00b954;">Android</span>
+        <span class="px-3 py-1.5 rounded-md font-mono text-xs font-semibold" style="background:#273647;color:#aec6ff;">AI</span>
+      </div>
+      <!-- CTA -->
+      <div class="flex gap-4 mt-4">
+        <button onclick="switchTab('contact')" class="px-8 py-3 rounded-lg bg-primary-container text-white font-semibold text-base cta-glow transition-all hover:scale-105" style="background:#0070f3;">
+          <span data-en="Start a Project" data-ar="ابدأ مشروعك">Start a Project</span>
+          <span class="material-symbols-outlined align-middle ms-1" style="font-size:20px;">arrow_forward</span>
+        </button>
+        <button onclick="switchTab('projects')" class="px-8 py-3 rounded-lg border border-outline font-semibold text-base transition-all hover:scale-105" style="border-color:#414754;color:#c1c6d7;">
+          <span data-en="View Work" data-ar="شاهد أعمالي">View Work</span>
+        </button>
+      </div>
+    </div>
+    <!-- Stats -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+      <div class="glass-panel rounded-xl p-6 text-center">
+        <div class="text-3xl md:text-4xl font-extrabold text-gradient">50+</div>
+        <div class="text-sm mt-1 font-mono" style="color:#8b90a0;" data-en="Projects" data-ar="مشروع">Projects</div>
+      </div>
+      <div class="glass-panel rounded-xl p-6 text-center">
+        <div class="text-3xl md:text-4xl font-extrabold text-gradient">6+</div>
+        <div class="text-sm mt-1 font-mono" style="color:#8b90a0;" data-en="Years Exp." data-ar="سنوات خبرة">Years Exp.</div>
+      </div>
+      <div class="glass-panel rounded-xl p-6 text-center">
+        <div class="text-3xl md:text-4xl font-extrabold text-gradient">100%</div>
+        <div class="text-sm mt-1 font-mono" style="color:#8b90a0;" data-en="Satisfaction" data-ar="رضا العملاء">Satisfaction</div>
+      </div>
+      <div class="glass-panel rounded-xl p-6 text-center">
+        <div class="text-3xl md:text-4xl font-extrabold text-gradient">24/7</div>
+        <div class="text-sm mt-1 font-mono" style="color:#8b90a0;" data-en="Support" data-ar="دعم فني">Support</div>
+      </div>
+    </div>
+    <!-- Tech Skills Mini -->
+    <div class="mt-16">
+      <h2 class="text-2xl font-bold mb-6" data-en="Technical Expertise" data-ar="المهارات التقنية">Technical Expertise</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="glass-panel rounded-xl p-5">
+          <div class="flex justify-between items-center mb-2">
+            <span class="font-mono text-sm font-semibold" style="color:#aec6ff;">React / TypeScript</span>
+            <span class="font-mono text-xs" style="color:#8b90a0;">95%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" style="width:95%;background:linear-gradient(90deg,#0070f3,#7759fb);"></div></div>
+        </div>
+        <div class="glass-panel rounded-xl p-5">
+          <div class="flex justify-between items-center mb-2">
+            <span class="font-mono text-sm font-semibold" style="color:#4ae176;">Node.js</span>
+            <span class="font-mono text-xs" style="color:#8b90a0;">90%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" style="width:90%;background:linear-gradient(90deg,#00b954,#4ae176);"></div></div>
+        </div>
+        <div class="glass-panel rounded-xl p-5">
+          <div class="flex justify-between items-center mb-2">
+            <span class="font-mono text-sm font-semibold" style="color:#c9beff;">Android / Kotlin</span>
+            <span class="font-mono text-xs" style="color:#8b90a0;">85%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" style="width:85%;background:linear-gradient(90deg,#512bd4,#c9beff);"></div></div>
+        </div>
+        <div class="glass-panel rounded-xl p-5">
+          <div class="flex justify-between items-center mb-2">
+            <span class="font-mono text-sm font-semibold" style="color:#aec6ff;">AI Integration</span>
+            <span class="font-mono text-xs" style="color:#8b90a0;">88%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" style="width:88%;background:linear-gradient(90deg,#0070f3,#4ae176);"></div></div>
+        </div>
+        <div class="glass-panel rounded-xl p-5">
+          <div class="flex justify-between items-center mb-2">
+            <span class="font-mono text-sm font-semibold" style="color:#aec6ff;">HTML5 / CSS3</span>
+            <span class="font-mono text-xs" style="color:#8b90a0;">98%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" style="width:98%;background:linear-gradient(90deg,#0070f3,#c9beff);"></div></div>
+        </div>
+        <div class="glass-panel rounded-xl p-5">
+          <div class="flex justify-between items-center mb-2">
+            <span class="font-mono text-sm font-semibold" style="color:#c9beff;">Prompt Engineering</span>
+            <span class="font-mono text-xs" style="color:#8b90a0;">92%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" style="width:92%;background:linear-gradient(90deg,#7759fb,#0070f3);"></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== TAB: ABOUT ==================== -->
+  <section class="tab-content" id="tab-about">
+    <div class="py-8 md:py-12">
+      <h1 class="text-3xl md:text-5xl font-extrabold mb-4" style="letter-spacing:-0.02em;">
+        <span class="text-gradient" data-en="About Me" data-ar="عني">About Me</span>
+      </h1>
+      <p class="text-on-surface-variant max-w-2xl text-lg mb-12" style="color:#c1c6d7;" data-en="Full Stack Developer & AI Integration Specialist — building high-performance, intelligent systems." data-ar="مطور متكامل ومتخصص في دمج الذكاء الاصطناعي — أبني أنظمة عالية الأداء وذكية.">
+        Full Stack Developer & AI Integration Specialist — building high-performance, intelligent systems.
+      </p>
+
+      <!-- Arabic Marketing Content -->
+      <div class="glass-panel rounded-xl p-6 md:p-10 mb-12 font-arabic" dir="rtl" style="font-family:'Noto Sans Arabic',sans-serif;">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background:#0070f3;">
+            <span class="material-symbols-outlined text-white" style="font-size:22px;">rocket_launch</span>
+          </div>
+          <h2 class="text-xl md:text-2xl font-bold" style="color:#d4e4fa;" data-ar-title="true">مكانك مش مجرد فكرة في خيالك.. مكانك يستحق يكون واقع، ذكي، ومتاح للجميع! 🚀</h2>
+        </div>
+        <p class="text-base md:text-lg leading-relaxed mb-6" style="color:#c1c6d7; font-family:'Noto Sans Arabic',sans-serif;">
+          لو أنت صاحب شركة، مطعم، كافيه، أو مكتب.. وبتدور على طريقة تنقل بيها شغلك لمستوى تاني من الاحترافية والذكاء، أو عندك فكرة تطبيق ومحتاج اللي ينفذها بأعلى جودة وأحدث تكنولوجيا.. فالبوست ده ليك!
+        </p>
+        <p class="text-base md:text-lg leading-relaxed mb-8" style="color:#d4e4fa; font-family:'Noto Sans Arabic',sans-serif;">
+          أنا Demo أو محمد، مبرمج Full Stack Developer وخبير في دمج تقنيات الذكاء الاصطناعي (AI) لإنشاء أنظمة وتطبيقات ذكية، فائقة السرعة، وسهلة الاستخدام.
+        </p>
+
+        <!-- Services Grid -->
+        <h3 class="text-lg font-bold mb-4" style="color:#d4e4fa; font-family:'Noto Sans Arabic',sans-serif;">💡 إيه اللي أقدر أقدمه لمشروعك؟</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          <div class="rounded-xl p-5" style="background:rgba(0,112,243,0.08); border:1px solid rgba(0,112,243,0.2);">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="material-symbols-outlined" style="font-size:20px;color:#0070f3;">psychology</span>
+              <span class="font-bold text-sm" style="color:#d4e4fa; font-family:'Noto Sans Arabic',sans-serif;">أنظمة مدعومة بالذكاء الاصطناعي</span>
+            </div>
+            <p class="text-sm leading-relaxed" style="color:#c1c6d7; font-family:'Noto Sans Arabic',sans-serif;">تحليل المبيعات وتوقع الأرباح، شات بوت ذكي لخدمة عملائك على مدار الساعة، أو أتمتة المهام اليومية.</p>
+          </div>
+          <div class="rounded-xl p-5" style="background:rgba(74,225,118,0.08); border:1px solid rgba(74,225,118,0.2);">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="material-symbols-outlined" style="font-size:20px;color:#4ae176;">phone_iphone</span>
+              <span class="font-bold text-sm" style="color:#d4e4fa; font-family:'Noto Sans Arabic',sans-serif;">تطبيقات أندرويد</span>
+            </div>
+            <p class="text-sm leading-relaxed" style="color:#c1c6d7; font-family:'Noto Sans Arabic',sans-serif;">تطبيق سريع، متوافق مع كل الشاشات، وبتجربة مستخدم مريحة.</p>
+          </div>
+          <div class="rounded-xl p-5" style="background:rgba(201,190,255,0.08); border:1px solid rgba(201,190,255,0.2);">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="material-symbols-outlined" style="font-size:20px;color:#c9beff;">language</span>
+              <span class="font-bold text-sm" style="color:#d4e4fa; font-family:'Noto Sans Arabic',sans-serif;">مواقع وأنظمة ويب متكاملة</span>
+            </div>
+            <p class="text-sm leading-relaxed" style="color:#c1c6d7; font-family:'Noto Sans Arabic',sans-serif;">تصميمات عصرية وجذابة للمستخدم، مع لوحة تحكم قوية وسلسة للإدارة.</p>
+          </div>
+          <div class="rounded-xl p-5" style="background:rgba(0,185,84,0.08); border:1px solid rgba(0,185,84,0.2);">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="material-symbols-outlined" style="font-size:20px;color:#00b954;">storefront</span>
+              <span class="font-bold text-sm" style="color:#d4e4fa; font-family:'Noto Sans Arabic',sans-serif;">أنظمة لإدارة المطاعم والشركات</span>
+            </div>
+            <p class="text-sm leading-relaxed" style="color:#c1c6d7; font-family:'Noto Sans Arabic',sans-serif;">إدارة المخازن، المبيعات، الحسابات، وطلبات العملاء — تتابع شغلك بضغطة زرار.</p>
+          </div>
+        </div>
+
+        <!-- Tech Stack -->
+        <h3 class="text-lg font-bold mb-4" style="color:#d4e4fa; font-family:'Noto Sans Arabic',sans-serif;">🛠️ التقنيات اللي بنبني بيها مشروعك</h3>
+        <div class="flex flex-wrap gap-2 mb-8">
+          <span class="px-3 py-1.5 rounded-md font-mono text-xs font-semibold" style="background:rgba(0,112,243,0.15);color:#aec6ff;">HTML5</span>
+          <span class="px-3 py-1.5 rounded-md font-mono text-xs font-semibold" style="background:rgba(0,112,243,0.15);color:#aec6ff;">CSS3</span>
+          <span class="px-3 py-1.5 rounded-md font-mono text-xs font-semibold" style="background:rgba(201,190,255,0.15);color:#c9beff;">JavaScript</span>
+          <span class="px-3 py-1.5 rounded-md font-mono text-xs font-semibold" style="background:rgba(201,190,255,0.15);color:#c9beff;">TypeScript</span>
+          <span class="px-3 py-1.5 rounded-md font-mono text-xs font-semibold" style="background:rgba(0,112,243,0.15);color:#aec6ff;">React</span>
+          <span class="px-3 py-1.5 rounded-md font-mono text-xs font-semibold" style="background:rgba(74,225,118,0.15);color:#4ae176;">Node.js</span>
+          <span class="px-3 py-1.5 rounded-md font-mono text-xs font-semibold" style="background:rgba(0,185,84,0.15);color:#00b954;">Android</span>
+          <span class="px-3 py-1.5 rounded-md font-mono text-xs font-semibold" style="background:rgba(0,112,243,0.15);color:#aec6ff;">AI Integration</span>
+        </div>
+
+        <!-- Why Me -->
+        <h3 class="text-lg font-bold mb-4" style="color:#d4e4fa; font-family:'Noto Sans Arabic',sans-serif;">🤝 ليه تختارني لمشروعك؟</h3>
+        <ul class="space-y-3 mb-8">
+          <li class="flex items-start gap-2">
+            <span class="material-symbols-outlined mt-0.5" style="font-size:18px;color:#4ae176;">check_circle</span>
+            <span class="text-sm leading-relaxed" style="color:#c1c6d7; font-family:'Noto Sans Arabic',sans-serif;"><strong style="color:#d4e4fa;">رؤية مستقبلية (AI Tools):</strong> بستخدم أدوات الذكاء الاصطناعي لتسريع عملية التطوير واختبار الأكواد — وقت تسليم أسرع وتكلفة أقل.</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="material-symbols-outlined mt-0.5" style="font-size:18px;color:#4ae176;">check_circle</span>
+            <span class="text-sm leading-relaxed" style="color:#c1c6d7; font-family:'Noto Sans Arabic',sans-serif;"><strong style="color:#d4e4fa;">حل متكامل من مكان واحد:</strong> مش هتحتاج تلف بين مبرمج للتصميم ومبرمج للقواعد — أنا بستلم الفكرة وبسلمك مشروع جاهز.</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="material-symbols-outlined mt-0.5" style="font-size:18px;color:#4ae176;">check_circle</span>
+            <span class="text-sm leading-relaxed" style="color:#c1c6d7; font-family:'Noto Sans Arabic',sans-serif;"><strong style="color:#d4e4fa;">كود نظيف وقابل للتطوير (Clean Code):</strong> عشان لو حبيت تكبر مشروعك مستقبلاً يكون الموضوع بسيط.</span>
+          </li>
+        </ul>
+
+        <!-- CTA -->
+        <div class="flex items-center gap-3 p-4 rounded-xl" style="background:rgba(0,112,243,0.1); border:1px solid rgba(0,112,243,0.3);">
+          <span class="material-symbols-outlined" style="font-size:24px;color:#0070f3;">mail</span>
+          <div>
+            <p class="text-sm font-bold" style="color:#d4e4fa; font-family:'Noto Sans Arabic',sans-serif;">🎯 جاهز تطوّر فكرتك؟</p>
+            <p class="text-xs" style="color:#c1c6d7; font-family:'Noto Sans Arabic',sans-serif;">ابعتلي رسالة دلوقتي وعملية استشارة مجانية.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Service Cards (EN) -->
+      <h2 class="text-2xl font-bold mb-6" data-en="What I Offer" data-ar="ما أقدمه">What I Offer</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="glass-panel rounded-xl p-6 hover:scale-[1.02] transition-transform cursor-default">
+          <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-4" style="background:rgba(0,112,243,0.15);">
+            <span class="material-symbols-outlined" style="color:#0070f3;">psychology</span>
+          </div>
+          <h3 class="font-bold text-lg mb-2" data-en="AI-Powered Systems" data-ar="أنظمة مدعومة بالذكاء الاصطناعي">AI-Powered Systems</h3>
+          <p class="text-sm leading-relaxed" style="color:#c1c6d7;" data-en="Integrate intelligent tools into your business — sales analytics, smart chatbots, workflow automation." data-ar="دمج أدوات ذكية في أعمالك — تحليل المبيعات، شات بوت ذكي، أتمتة المهام.">Integrate intelligent tools into your business — sales analytics, smart chatbots, workflow automation.</p>
+          <div class="flex gap-2 mt-4">
+            <span class="font-mono text-xs px-2 py-1 rounded" style="background:#273647;color:#aec6ff;">AI</span>
+            <span class="font-mono text-xs px-2 py-1 rounded" style="background:#273647;color:#4ae176;">Node.js</span>
+          </div>
+        </div>
+        <div class="glass-panel rounded-xl p-6 hover:scale-[1.02] transition-transform cursor-default">
+          <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-4" style="background:rgba(74,225,118,0.15);">
+            <span class="material-symbols-outlined" style="color:#4ae176;">phone_iphone</span>
+          </div>
+          <h3 class="font-bold text-lg mb-2" data-en="Android Applications" data-ar="تطبيقات أندرويد">Android Applications</h3>
+          <p class="text-sm leading-relaxed" style="color:#c1c6d7;" data-en="Fast, responsive mobile apps with smooth UX across all screen sizes." data-ar="تطبيق سريع، متوافق مع كل الشاشات، وبتجربة مستخدم مريحة.">Fast, responsive mobile apps with smooth UX across all screen sizes.</p>
+          <div class="flex gap-2 mt-4">
+            <span class="font-mono text-xs px-2 py-1 rounded" style="background:#273647;color:#00b954;">Android</span>
+            <span class="font-mono text-xs px-2 py-1 rounded" style="background:#273647;color:#c9beff;">Kotlin</span>
+          </div>
+        </div>
+        <div class="glass-panel rounded-xl p-6 hover:scale-[1.02] transition-transform cursor-default">
+          <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-4" style="background:rgba(201,190,255,0.15);">
+            <span class="material-symbols-outlined" style="color:#c9beff;">language</span>
+          </div>
+          <h3 class="font-bold text-lg mb-2" data-en="Web Systems & Dashboards" data-ar="مواقع وأنظمة ويب">Web Systems & Dashboards</h3>
+          <p class="text-sm leading-relaxed" style="color:#c1c6d7;" data-en="Modern, attractive designs with powerful admin panels for seamless management." data-ar="تصميمات عصرية مع لوحة تحكم قوية وسلسة للإدارة.">Modern, attractive designs with powerful admin panels for seamless management.</p>
+          <div class="flex gap-2 mt-4">
+            <span class="font-mono text-xs px-2 py-1 rounded" style="background:#273647;color:#aec6ff;">React</span>
+            <span class="font-mono text-xs px-2 py-1 rounded" style="background:#273647;color:#c9beff;">TypeScript</span>
+          </div>
+        </div>
+        <div class="glass-panel rounded-xl p-6 hover:scale-[1.02] transition-transform cursor-default">
+          <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-4" style="background:rgba(0,185,84,0.15);">
+            <span class="material-symbols-outlined" style="color:#00b954;">storefront</span>
+          </div>
+          <h3 class="font-bold text-lg mb-2" data-en="Business Management" data-ar="أنظمة إدارة الأعمال">Business Management</h3>
+          <p class="text-sm leading-relaxed" style="color:#c1c6d7;" data-en="Custom solutions for restaurants, cafes, and companies — inventory, sales, accounting, and orders." data-ar="حلول مخصصة للمطاعم والكافيهات والشركات — مخازن، مبيعات، حسابات، وطلبات.">Custom solutions for restaurants, cafes, and companies — inventory, sales, accounting, and orders.</p>
+          <div class="flex gap-2 mt-4">
+            <span class="font-mono text-xs px-2 py-1 rounded" style="background:#273647;color:#4ae176;">Node.js</span>
+            <span class="font-mono text-xs px-2 py-1 rounded" style="background:#273647;color:#aec6ff;">React</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== TAB: PROJECTS ==================== -->
+  <section class="tab-content" id="tab-projects">
+    <div class="py-8 md:py-12">
+      <h1 class="text-3xl md:text-5xl font-extrabold mb-4" style="letter-spacing:-0.02em;">
+        <span class="text-gradient" data-en="Projects" data-ar="المشاريع">Projects</span>
+      </h1>
+      <p class="text-on-surface-variant max-w-2xl text-lg mb-12" style="color:#c1c6d7;" data-en="A selection of systems and applications built with precision and performance." data-ar="مجموعة من الأنظمة والتطبيقات المبنية بالدقة والأداء.">
+        A selection of systems and applications built with precision and performance.
+      </p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Project 1 -->
+        <div class="glass-panel rounded-xl overflow-hidden hover:scale-[1.02] transition-transform group">
+          <div class="p-4" style="background:#0d1c2d;">
+            <div class="browser-dots flex items-center gap-0 mb-3"><span></span><span></span><span></span></div>
+            <div class="h-40 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,#0070f3 0%,#7759fb 100%);">
+              <span class="material-symbols-outlined text-white float-anim" style="font-size:48px;">dashboard</span>
+            </div>
+          </div>
+          <div class="p-5">
+            <div class="flex items-center gap-2 mb-2">
+              <h3 class="font-bold text-lg" data-en="Quantum Dashboard" data-ar="لوحة كم الحوسبة">Quantum Dashboard</h3>
+              <span class="w-2 h-2 rounded-full" style="background:#4ae176;" title="Live"></span>
+            </div>
+            <p class="text-sm mb-4" style="color:#c1c6d7;" data-en="Real-time analytics dashboard with AI-powered insights and predictive modeling." data-ar="لوحة تحليلات فورية مع رؤى مدعومة بالذكاء الاصطناعي ونمذجة تنبؤية.">Real-time analytics dashboard with AI-powered insights and predictive modeling.</p>
+            <div class="flex flex-wrap gap-2 mb-4">
+              <span class="font-mono text-xs px-2 py-1 rounded" style="background:#273647;color:#aec6ff;">React</span>
+              <span class="font-mono text-xs px-2 py-1 rounded" style="background:#273647;color:#c9beff;">TypeScript</span>
+              <span class="font-mono text-xs px-2 py-1 rounded" style="background:#273647;color:#4ae176;">Node.js</span>
+              <span class="font-mono text-xs px-2 py-1 rounded" style="background:#273647;color:#aec6ff;">AI</span>
+            </div>
+            <div class="flex gap-4">
+              <a href="#" class="flex items-center gap-1 text-sm font-mono transition-colors" style="color:#8b90a0;" onmouseover="this.style.color='#aec6ff'" onmouseout="this.style.color='#8b90a0'">
+                <span class="material-symbols-outlined" style="font-size:18px;">code</span>
+                <span data-en="GitHub" data-ar="جيت هب">GitHub</span>
+              </a>
+              <a href="#" class="flex items-center gap-1 text-sm font-mono transition-colors" style="color:#8b90a0;" onmouseover="this.style.color='#4ae176'" onmouseout="this.style.color='#8b90a0'">
+                <span class="material-symbols-outlined" style="font-size:18px;">open_in_new</span>
+                <span data-en="Live Demo" data-ar="معاينة حية">Live Demo</span>
+              </a>
+            </div>
+          </div>
+        </div>
+        <!-- Project 2 -->
+        <div class="glass-panel rounded-xl overflow-hidden hover:scale-[1.02] transition-transform group">
+          <div class="p-4" style="background:#0d1c2d;">
+            <div class="browser-dots flex items-center gap-0 mb-3"><span></span><span></span><span></span></div>
+            <div class="h-40 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,#00b954 0%,#4ae176 100%);">
+              <span class="material-symbols-outlined text-white float-anim" style="font-size:48px;">sync</span>
+            </div>
+          </div>
+          <div class="p-5">
+            <div class="flex items-center gap-2 mb-2">
+              <h3 class="font-bold text-lg" data-en="SyncFit Pro" data-ar="سينك فيت برو">SyncFit Pro</h3>
+              <span class="w-2 h-2 rounded-full" style="background:#4ae176;" title="Live"></span>
+            </div>
+            <p class="text-sm mb-4" style="color:#c1c6d7;" data-en="Cross-platform fitness tracking app with AI workout recommendations and progress analytics." data-ar="تطبيق لياقة بدنية متعدد المنصات مع توصيات تمارين بالذكاء الاصطناعي.">Cross-platform fitness tracking app with AI workout recommendations and progress analytics.</p>
+            <div class="flex flex-wrap gap-2 mb-4">
+              <span class="font-mono text-xs px-2 py-1 rounded" style="background:#273647;color:#00b954;">Android</span>
+              <span class="font-mono text-xs px-2 py-1 rounded" style="background:#273647;color:#c9beff;">Kotlin</span>
+              <span class="font-mono text-xs px-2 py-1 rounded" style="background:#273647;color:#4ae176;">Node.js</span>
+            </div>
+            <div class="flex gap-4">
+              <a href="#" class="flex items-center gap-1 text-sm font-mono transition-colors" style="color:#8b90a0;" onmouseover="this.style.color='#aec6ff'" onmouseout="this.style.color='#8b90a0'">
+                <span class="material-symbols-outlined" style="font-size:18px;">code</span>
+                <span data-en="GitHub" data-ar="جيت هب">GitHub</span>
+              </a>
+              <a href="#" class="flex items-center gap-1 text-sm font-mono transition-colors" style="color:#8b90a0;" onmouseover="this.style.color='#4ae176'" onmouseout="this.style.color='#8b90a0'">
+                <span class="material-symbols-outlined" style="font-size:18px;">open_in_new</span>
+                <span data-en="Live Demo" data-ar="معاينة حية">Live Demo</span>
+              </a>
+            </div>
+          </div>
+        </div>
+        <!-- Project 3 -->
+        <div class="glass-panel rounded-xl overflow-hidden hover:scale-[1.02] transition-transform group">
+          <div class="p-4" style="background:#0d1c2d;">
+            <div class="browser-dots flex items-center gap-0 mb-3"><span></span><span></span><span></span></div>
+            <div class="h-40 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,#512bd4 0%,#c9beff 100%);">
+              <span class="material-symbols-outlined text-white float-anim" style="font-size:48px;">architecture</span>
+            </div>
+          </div>
+          <div class="p-5">
+            <div class="flex items-center gap-2 mb-2">
+              <h3 class="font-bold text-lg" data-en="Forge Architect" data-ar="فورج أركيتيكت">Forge Architect</h3>
+              <span class="w-2 h-2 rounded-full" style="background:#8b90a0;" title="Maintenance"></span>
+            </div>
+            <p class="text-sm mb-4" style="color:#c1c6d7;" data-en="Restaurant management system with real-time inventory tracking and AI-powered ordering." data-ar="نظام إدارة مطاعم مع تتبع المخزون الفوري والطلبات بالذكاء الاصطناعي.">Restaurant management system with real-time inventory tracking and AI-powered ordering.</p>
+            <div class="flex flex-wrap gap-2 mb-4">
+              <span class="font-mono text-xs px-2 py-1 rounded" style="background:#273647;color:#aec6ff;">React</span>
+              <span class="font-mono text-xs px-2 py-1 rounded" style="background:#273647;color:#4ae176;">Node.js</span>
+              <span class="font-mono text-xs px-2 py-1 rounded" style="background:#273647;color:#c9beff;">AI</span>
+            </div>
+            <div class="flex gap-4">
+              <a href="#" class="flex items-center gap-1 text-sm font-mono transition-colors" style="color:#8b90a0;" onmouseover="this.style.color='#aec6ff'" onmouseout="this.style.color='#8b90a0'">
+                <span class="material-symbols-outlined" style="font-size:18px;">code</span>
+                <span data-en="GitHub" data-ar="جيت هب">GitHub</span>
+              </a>
+              <a href="#" class="flex items-center gap-1 text-sm font-mono transition-colors" style="color:#8b90a0;" onmouseover="this.style.color='#4ae176'" onmouseout="this.style.color='#8b90a0'">
+                <span class="material-symbols-outlined" style="font-size:18px;">open_in_new</span>
+                <span data-en="Live Demo" data-ar="معاينة حية">Live Demo</span>
+              </a>
+            </div>
+          </div>
+        </div>
+        <!-- Project 4 -->
+        <div class="glass-panel rounded-xl overflow-hidden hover:scale-[1.02] transition-transform group">
+          <div class="p-4" style="background:#0d1c2d;">
+            <div class="browser-dots flex items-center gap-0 mb-3"><span></span><span></span><span></span></div>
+            <div class="h-40 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,#0070f3 0%,#4ae176 100%);">
+              <span class="material-symbols-outlined text-white float-anim" style="font-size:48px;">cloud</span>
+            </div>
+          </div>
+          <div class="p-5">
+            <div class="flex items-center gap-2 mb-2">
+              <h3 class="font-bold text-lg" data-en="Aether API Gateway" data-ar="إيثر بوابة API">Aether API Gateway</h3>
+              <span class="w-2 h-2 rounded-full" style="background:#4ae176;" title="Live"></span>
+            </div>
+            <p class="text-sm mb-4" style="color:#c1c6d7;" data-en="Scalable API gateway with intelligent rate limiting, caching, and real-time monitoring." data-ar="بوابة API قابلة للتوسع مع تحديد المعدل الذكي والتخزين المؤقت والمراقبة الفورية.">Scalable API gateway with intelligent rate limiting, caching, and real-time monitoring.</p>
+            <div class="flex flex-wrap gap-2 mb-4">
+              <span class="font-mono text-xs px-2 py-1 rounded" style="background:#273647;color:#4ae176;">Node.js</span>
+              <span class="font-mono text-xs px-2 py-1 rounded" style="background:#273647;color:#c9beff;">TypeScript</span>
+              <span class="font-mono text-xs px-2 py-1 rounded" style="background:#273647;color:#aec6ff;">AI</span>
+            </div>
+            <div class="flex gap-4">
+              <a href="#" class="flex items-center gap-1 text-sm font-mono transition-colors" style="color:#8b90a0;" onmouseover="this.style.color='#aec6ff'" onmouseout="this.style.color='#8b90a0'">
+                <span class="material-symbols-outlined" style="font-size:18px;">code</span>
+                <span data-en="GitHub" data-ar="جيت هب">GitHub</span>
+              </a>
+              <a href="#" class="flex items-center gap-1 text-sm font-mono transition-colors" style="color:#8b90a0;" onmouseover="this.style.color='#4ae176'" onmouseout="this.style.color='#8b90a0'">
+                <span class="material-symbols-outlined" style="font-size:18px;">open_in_new</span>
+                <span data-en="Live Demo" data-ar="معاينة حية">Live Demo</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== TAB: SERVICES ==================== -->
+  <section class="tab-content" id="tab-services">
+    <div class="py-8 md:py-12">
+      <h1 class="text-3xl md:text-5xl font-extrabold mb-4" style="letter-spacing:-0.02em;">
+        <span class="text-gradient" data-en="Services & Pricing" data-ar="الخدمات والأسعار">Services & Pricing</span>
+      </h1>
+      <p class="text-on-surface-variant max-w-2xl text-lg mb-12" style="color:#c1c6d7;" data-en="Transparent pricing for high-quality development. Every project includes clean code, full documentation, and post-launch support." data-ar="أسعار شفافة لتطوير عالي الجودة. كل مشروع يشمل كود نظيف وتوثيق كامل ودعم بعد الإطلاق.">
+        Transparent pricing for high-quality development. Every project includes clean code, full documentation, and post-launch support.
+      </p>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Basic -->
+        <div class="glass-panel rounded-xl p-6 flex flex-col">
+          <div class="mb-6">
+            <span class="font-mono text-xs font-semibold px-3 py-1 rounded-full" style="background:rgba(139,144,160,0.15);color:#8b90a0;" data-en="Basic" data-ar="أساسي">Basic</span>
+          </div>
+          <div class="mb-6">
+            <span class="text-4xl font-extrabold">$2,499</span>
+          </div>
+          <p class="text-sm mb-6" style="color:#c1c6d7;" data-en="Perfect for landing pages and small business sites." data-ar="مثالي لصفحات الهبوط ومواقع الأعمال الصغيرة.">Perfect for landing pages and small business sites.</p>
+          <ul class="space-y-3 mb-8 flex-1">
+            <li class="flex items-center gap-2 text-sm" style="color:#c1c6d7;">
+              <span class="material-symbols-outlined" style="font-size:18px;color:#4ae176;">check</span>
+              <span data-en="Responsive Design" data-ar="تصميم متجاوب">Responsive Design</span>
+            </li>
+            <li class="flex items-center gap-2 text-sm" style="color:#c1c6d7;">
+              <span class="material-symbols-outlined" style="font-size:18px;color:#4ae176;">check</span>
+              <span data-en="Up to 5 Pages" data-ar="حتى 5 صفحات">Up to 5 Pages</span>
+            </li>
+            <li class="flex items-center gap-2 text-sm" style="color:#c1c6d7;">
+              <span class="material-symbols-outlined" style="font-size:18px;color:#4ae176;">check</span>
+              <span data-en="SEO Optimization" data-ar="تحسين SEO">SEO Optimization</span>
+            </li>
+            <li class="flex items-center gap-2 text-sm" style="color:#c1c6d7;">
+              <span class="material-symbols-outlined" style="font-size:18px;color:#4ae176;">check</span>
+              <span data-en="1 Month Support" data-ar="شهر دعم">1 Month Support</span>
+            </li>
+          </ul>
+          <button onclick="switchTab('contact')" class="w-full py-3 rounded-lg border font-semibold transition-all hover:scale-[1.02]" style="border-color:#414754;color:#c1c6d7;" data-en="Get Started" data-ar="ابدأ الآن">Get Started</button>
+        </div>
+        <!-- Pro -->
+        <div class="glass-panel rounded-xl p-6 flex flex-col relative pricing-popular" style="border-color:#0070f3;">
+          <div class="mb-6 mt-2">
+            <span class="font-mono text-xs font-semibold px-3 py-1 rounded-full" style="background:rgba(0,112,243,0.15);color:#0070f3;" data-en="Professional" data-ar="احترافي">Professional</span>
+          </div>
+          <div class="mb-6">
+            <span class="text-4xl font-extrabold">$5,999</span>
+          </div>
+          <p class="text-sm mb-6" style="color:#c1c6d7;" data-en="Full-stack web apps with admin dashboards and database design." data-ar="تطبيقات ويب متكاملة مع لوحات تحكم وتصميم قواعد بيانات.">Full-stack web apps with admin dashboards and database design.</p>
+          <ul class="space-y-3 mb-8 flex-1">
+            <li class="flex items-center gap-2 text-sm" style="color:#c1c6d7;">
+              <span class="material-symbols-outlined" style="font-size:18px;color:#0070f3;">check</span>
+              <span data-en="Everything in Basic" data-ar="كل مزايا الأساسي">Everything in Basic</span>
+            </li>
+            <li class="flex items-center gap-2 text-sm" style="color:#c1c6d7;">
+              <span class="material-symbols-outlined" style="font-size:18px;color:#0070f3;">check</span>
+              <span data-en="Unlimited Pages" data-ar="صفحات غير محدودة">Unlimited Pages</span>
+            </li>
+            <li class="flex items-center gap-2 text-sm" style="color:#c1c6d7;">
+              <span class="material-symbols-outlined" style="font-size:18px;color:#0070f3;">check</span>
+              <span data-en="Admin Dashboard" data-ar="لوحة تحكم إدارية">Admin Dashboard</span>
+            </li>
+            <li class="flex items-center gap-2 text-sm" style="color:#c1c6d7;">
+              <span class="material-symbols-outlined" style="font-size:18px;color:#0070f3;">check</span>
+              <span data-en="Database Design" data-ar="تصميم قاعدة بيانات">Database Design</span>
+            </li>
+            <li class="flex items-center gap-2 text-sm" style="color:#c1c6d7;">
+              <span class="material-symbols-outlined" style="font-size:18px;color:#0070f3;">check</span>
+              <span data-en="3 Months Support" data-ar="3 أشهر دعم">3 Months Support</span>
+            </li>
+          </ul>
+          <button onclick="switchTab('contact')" class="w-full py-3 rounded-lg font-semibold text-white transition-all hover:scale-[1.02] cta-glow" style="background:#0070f3;" data-en="Get Started" data-ar="ابدأ الآن">Get Started</button>
+        </div>
+        <!-- Enterprise -->
+        <div class="glass-panel rounded-xl p-6 flex flex-col">
+          <div class="mb-6">
+            <span class="font-mono text-xs font-semibold px-3 py-1 rounded-full" style="background:rgba(201,190,255,0.15);color:#c9beff;" data-en="Enterprise" data-ar="مؤسساتي">Enterprise</span>
+          </div>
+          <div class="mb-6">
+            <span class="text-4xl font-extrabold">$12,499</span>
+          </div>
+          <p class="text-sm mb-6" style="color:#c1c6d7;" data-en="AI-integrated systems, mobile apps, and scalable architecture." data-ar="أنظمة متكاملة بالذكاء الاصطناعي وتطبيقات موبايل وهندسة قابلة للتوسع.">AI-integrated systems, mobile apps, and scalable architecture.</p>
+          <ul class="space-y-3 mb-8 flex-1">
+            <li class="flex items-center gap-2 text-sm" style="color:#c1c6d7;">
+              <span class="material-symbols-outlined" style="font-size:18px;color:#c9beff;">check</span>
+              <span data-en="Everything in Pro" data-ar="كل مزايا الاحترافي">Everything in Pro</span>
+            </li>
+            <li class="flex items-center gap-2 text-sm" style="color:#c1c6d7;">
+              <span class="material-symbols-outlined" style="font-size:18px;color:#c9beff;">check</span>
+              <span data-en="AI Integration" data-ar="دمج الذكاء الاصطناعي">AI Integration</span>
+            </li>
+            <li class="flex items-center gap-2 text-sm" style="color:#c1c6d7;">
+              <span class="material-symbols-outlined" style="font-size:18px;color:#c9beff;">check</span>
+              <span data-en="Android App" data-ar="تطبيق أندرويد">Android App</span>
+            </li>
+            <li class="flex items-center gap-2 text-sm" style="color:#c1c6d7;">
+              <span class="material-symbols-outlined" style="font-size:18px;color:#c9beff;">check</span>
+              <span data-en="Scalable Architecture" data-ar="هندسة قابلة للتوسع">Scalable Architecture</span>
+            </li>
+            <li class="flex items-center gap-2 text-sm" style="color:#c1c6d7;">
+              <span class="material-symbols-outlined" style="font-size:18px;color:#c9beff;">check</span>
+              <span data-en="12 Months Support" data-ar="12 شهر دعم">12 Months Support</span>
+            </li>
+          </ul>
+          <button onclick="switchTab('contact')" class="w-full py-3 rounded-lg border font-semibold transition-all hover:scale-[1.02]" style="border-color:#414754;color:#c1c6d7;" data-en="Get Started" data-ar="ابدأ الآن">Get Started</button>
+        </div>
+      </div>
+      <!-- Custom CTA -->
+      <div class="glass-panel rounded-xl p-8 mt-12 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div>
+          <h3 class="text-xl font-bold mb-2" data-en="Need a Custom Solution?" data-ar="محتاج حل مخصص؟">Need a Custom Solution?</h3>
+          <p class="text-sm" style="color:#c1c6d7;" data-en="Let's discuss your project requirements and create a tailored plan." data-ar="هنتكلم في متطلبات مشروعك ونصمم لك خطة مخصصة.">Let's discuss your project requirements and create a tailored plan.</p>
+        </div>
+        <button onclick="switchTab('contact')" class="px-8 py-3 rounded-lg font-semibold text-white whitespace-nowrap transition-all hover:scale-[1.02] cta-glow" style="background:#0070f3;">
+          <span data-en="Contact Me" data-ar="تواصل معي">Contact Me</span>
+          <span class="material-symbols-outlined align-middle ms-1" style="font-size:20px;">arrow_forward</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== TAB: CONTACT ==================== -->
+  <section class="tab-content" id="tab-contact">
+    <div class="py-8 md:py-12">
+      <h1 class="text-3xl md:text-5xl font-extrabold mb-4" style="letter-spacing:-0.02em;">
+        <span class="text-gradient" data-en="Let's Build Together" data-ar="نبني مع بعض">Let's Build Together</span>
+      </h1>
+      <p class="text-on-surface-variant max-w-2xl text-lg mb-12" style="color:#c1c6d7;" data-en="Tell me about your project and I'll get back to you within 24 hours with a free consultation." data-ar="احكيلي عن مشروعك وهرد عليك خلال 24 ساعة باستشارة مجانية.">
+        Tell me about your project and I'll get back to you within 24 hours with a free consultation.
+      </p>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Form -->
+        <div class="lg:col-span-2 glass-panel rounded-xl p-6 md:p-8">
+          <form id="contactForm" class="space-y-5">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
+                <label class="block text-sm font-semibold mb-2" style="color:#c1c6d7;" data-en="Name" data-ar="الاسم">Name</label>
+                <input type="text" required class="w-full px-4 py-3 rounded-lg text-sm transition-all" style="background:#0d1c2d;border:1px solid #414754;color:#d4e4fa;" placeholder="John Doe">
+              </div>
+              <div>
+                <label class="block text-sm font-semibold mb-2" style="color:#c1c6d7;" data-en="Email" data-ar="البريد الإلكتروني">Email</label>
+                <input type="email" required class="w-full px-4 py-3 rounded-lg text-sm transition-all" style="background:#0d1c2d;border:1px solid #414754;color:#d4e4fa;" placeholder="john@example.com">
+              </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
+                <label class="block text-sm font-semibold mb-2" style="color:#c1c6d7;" data-en="Project Type" data-ar="نوع المشروع">Project Type</label>
+                <select required class="w-full px-4 py-3 rounded-lg text-sm transition-all" style="background:#0d1c2d;border:1px solid #414754;color:#d4e4fa;">
+                  <option value="" data-en="Select type..." data-ar="اختر النوع...">Select type...</option>
+                  <option value="web" data-en="Web Application" data-ar="تطبيق ويب">Web Application</option>
+                  <option value="mobile" data-en="Android App" data-ar="تطبيق أندرويد">Android App</option>
+                  <option value="ai" data-en="AI Integration" data-ar="دمج ذكاء اصطناعي">AI Integration</option>
+                  <option value="system" data-en="Business System" data-ar="نظام أعمال">Business System</option>
+                  <option value="other" data-en="Other" data-ar="أخرى">Other</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-semibold mb-2" style="color:#c1c6d7;" data-en="Budget Range" data-ar="نطاق الميزانية">Budget Range</label>
+                <select class="w-full px-4 py-3 rounded-lg text-sm transition-all" style="background:#0d1c2d;border:1px solid #414754;color:#d4e4fa;">
+                  <option value="" data-en="Select budget..." data-ar="اختر الميزانية...">Select budget...</option>
+                  <option value="1-3k">$1,000 - $3,000</option>
+                  <option value="3-6k">$3,000 - $6,000</option>
+                  <option value="6-12k">$6,000 - $12,000</option>
+                  <option value="12k+" data-en="$12,000+" data-ar="$12,000+">$12,000+</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold mb-2" style="color:#c1c6d7;" data-en="Project Details" data-ar="تفاصيل المشروع">Project Details</label>
+              <textarea required rows="5" class="w-full px-4 py-3 rounded-lg text-sm transition-all resize-none" style="background:#0d1c2d;border:1px solid #414754;color:#d4e4fa;" data-en-placeholder="Tell me about your project, goals, and timeline..." data-ar-placeholder="احكيلي عن مشروعك، أهدافك، والجدول الزمني..." placeholder="Tell me about your project, goals, and timeline..."></textarea>
+            </div>
+            <button type="submit" id="submitBtn" class="w-full py-3 rounded-lg font-semibold text-white transition-all hover:scale-[1.02] cta-glow flex items-center justify-center gap-2" style="background:#0070f3;">
+              <span data-en="Send Message" data-ar="إرسال الرسالة">Send Message</span>
+              <span class="material-symbols-outlined" style="font-size:20px;">send</span>
+            </button>
+            <!-- Success message -->
+            <div id="successMsg" class="hidden text-center py-4 rounded-lg" style="background:rgba(74,225,118,0.1);border:1px solid rgba(74,225,118,0.3);">
+              <span class="material-symbols-outlined align-middle" style="color:#4ae176;">check_circle</span>
+              <span class="ms-2 text-sm font-semibold" style="color:#4ae176;" data-en="Message sent successfully! I'll reply within 24 hours." data-ar="تم إرسال الرسالة بنجاح! هرد عليك خلال 24 ساعة.">Message sent successfully! I'll reply within 24 hours.</span>
+            </div>
+          </form>
+        </div>
+        <!-- Contact Info -->
+        <div class="flex flex-col gap-4">
+          <div class="glass-panel rounded-xl p-6">
+            <h3 class="font-bold text-lg mb-4" data-en="Contact Info" data-ar="معلومات التواصل">Contact Info</h3>
+            <div class="space-y-4">
+              <a href="mailto:demo@example.com" class="flex items-center gap-3 group">
+                <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background:rgba(0,112,243,0.15);">
+                  <span class="material-symbols-outlined" style="font-size:20px;color:#0070f3;">mail</span>
+                </div>
+                <div>
+                  <div class="text-xs font-mono" style="color:#8b90a0;">Email</div>
+                  <div class="text-sm font-semibold group-hover:text-primary-container transition-colors" style="color:#d4e4fa;">demo@example.com</div>
+                </div>
+              </a>
+              <a href="#" class="flex items-center gap-3 group">
+                <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background:rgba(201,190,255,0.15);">
+                  <span class="material-symbols-outlined" style="font-size:20px;color:#c9beff;">code</span>
+                </div>
+                <div>
+                  <div class="text-xs font-mono" style="color:#8b90a0;">GitHub</div>
+                  <div class="text-sm font-semibold group-hover:text-tertiary transition-colors" style="color:#d4e4fa;">github.com/demo</div>
+                </div>
+              </a>
+              <a href="#" class="flex items-center gap-3 group">
+                <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background:rgba(0,185,84,0.15);">
+                  <span class="material-symbols-outlined" style="font-size:20px;color:#00b954;">work</span>
+                </div>
+                <div>
+                  <div class="text-xs font-mono" style="color:#8b90a0;">LinkedIn</div>
+                  <div class="text-sm font-semibold group-hover:text-secondary transition-colors" style="color:#d4e4fa;">linkedin.com/in/demo</div>
+                </div>
+              </a>
+            </div>
+          </div>
+          <div class="glass-panel rounded-xl p-6">
+            <h3 class="font-bold text-lg mb-4" data-en="Availability" data-ar="التوفر">Availability</h3>
+            <div class="flex items-center gap-2 mb-3">
+              <span class="w-2.5 h-2.5 rounded-full" style="background:#4ae176;"></span>
+              <span class="text-sm font-semibold" style="color:#4ae176;" data-en="Available for new projects" data-ar="متاح لمشاريع جديدة">Available for new projects</span>
+            </div>
+            <p class="text-sm" style="color:#c1c6d7;" data-en="Currently accepting projects for Q1 2025. Free consultation included." data-ar="أقبل مشاريع للربع الأول 2025. استشارة مجانية مشمولة.">Currently accepting projects for Q1 2025. Free consultation included.</p>
+          </div>
+          <div class="glass-panel rounded-xl p-6">
+            <h3 class="font-bold text-lg mb-4" data-en="Response Time" data-ar="وقت الاستجابة">Response Time</h3>
+            <div class="flex items-center gap-3">
+              <span class="material-symbols-outlined" style="font-size:24px;color:#0070f3;">schedule</span>
+              <div>
+                <div class="text-2xl font-extrabold">24h</div>
+                <div class="text-xs font-mono" style="color:#8b90a0;" data-en="Average response time" data-ar="متوسط وقت الاستجابة">Average response time</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="border-t py-8 px-4 md:px-16" style="border-color:rgba(255,255,255,0.06);">
+  <div class="max-w-site mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+    <div class="flex items-center gap-2">
+      <div class="w-6 h-6 rounded flex items-center justify-center" style="background:#0070f3;">
+        <span class="text-white font-mono font-bold text-xs">D</span>
+      </div>
+      <span class="font-mono text-sm" style="color:#8b90a0;">&copy; 2024 DEMO. Built for Performance.</span>
+    </div>
+    <div class="flex items-center gap-4">
+      <a href="#" class="transition-colors" style="color:#8b90a0;" onmouseover="this.style.color='#aec6ff'" onmouseout="this.style.color='#8b90a0'">
+        <span class="material-symbols-outlined" style="font-size:20px;">code</span>
+      </a>
+      <a href="#" class="transition-colors" style="color:#8b90a0;" onmouseover="this.style.color='#4ae176'" onmouseout="this.style.color='#8b90a0'">
+        <span class="material-symbols-outlined" style="font-size:20px;">work</span>
+      </a>
+      <a href="mailto:demo@example.com" class="transition-colors" style="color:#8b90a0;" onmouseover="this.style.color='#c9beff'" onmouseout="this.style.color='#8b90a0'">
+        <span class="material-symbols-outlined" style="font-size:20px;">mail</span>
+      </a>
+    </div>
+  </div>
+</footer>
+
+<!-- Light mode overrides -->
+<style>
+html.light .glass-panel { background: rgba(248, 250, 252, 0.85); border: 1px solid #e2e8f0; }
+html.light nav { background: rgba(255,255,255,0.9); border-bottom: 1px solid #e2e8f0; }
+html.light .browser-dots + div { background: #f1f5f9 !important; }
+html.light input, html.light textarea, html.light select { background: #f8fafc !important; border-color: #e2e8f0 !important; color: #1e293b !important; }
+html.light footer { border-color: #e2e8f0; }
+html.light .pricing-popular::before { background: #0070f3; }
+</style>
+
+<script>
+// === TAB SWITCHING ===
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + tabId).classList.add('active');
+  document.querySelectorAll('.nav-tab[data-tab="' + tabId + '"]').forEach(el => el.classList.add('active'));
+  document.getElementById('mobileMenu').classList.add('hidden');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+document.querySelectorAll('.nav-tab').forEach(btn => {
+  btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+});
+
+// Mobile menu
+document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+  document.getElementById('mobileMenu').classList.toggle('hidden');
+});
+
+// === THEME TOGGLE ===
+const html = document.documentElement;
+const themeDot = document.getElementById('themeDot');
+let dark = true;
+
+document.getElementById('themeToggle').addEventListener('click', () => {
+  dark = !dark;
+  if (dark) {
+    html.classList.add('dark');
+    html.classList.remove('light');
+    themeDot.style.transform = 'translateX(-8px)';
+  } else {
+    html.classList.remove('dark');
+    html.classList.add('light');
+    themeDot.style.transform = 'translateX(8px)';
+  }
+  themeDot.style.background = dark ? '#0070f3' : '#0070f3';
+});
+themeDot.style.transform = 'translateX(-8px)';
+
+// === LANGUAGE TOGGLE ===
+let currentLang = 'en';
+const langBtn = document.getElementById('langToggle');
+
+langBtn.addEventListener('click', () => {
+  currentLang = currentLang === 'en' ? 'ar' : 'en';
+  langBtn.textContent = currentLang === 'en' ? 'EN' : 'AR';
+  langBtn.classList.toggle('active', currentLang === 'en');
+
+  if (currentLang === 'ar') {
+    html.setAttribute('dir', 'rtl');
+    html.setAttribute('lang', 'ar');
+    document.querySelectorAll('[data-ar]').forEach(el => {
+      el.textContent = el.dataset.ar;
+    });
+    // Placeholder swap
+    document.querySelectorAll('[data-ar-placeholder]').forEach(el => {
+      el.placeholder = el.dataset.arPlaceholder;
+    });
+  } else {
+    html.setAttribute('dir', 'ltr');
+    html.setAttribute('lang', 'en');
+    document.querySelectorAll('[data-en]').forEach(el => {
+      el.textContent = el.dataset.en;
+    });
+    // Placeholder swap
+    document.querySelectorAll('[data-en-placeholder]').forEach(el => {
+      el.placeholder = el.dataset.enPlaceholder;
+    });
+  }
+});
+
+// === FORM SUBMISSION ===
+document.getElementById('contactForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const btn = document.getElementById('submitBtn');
+  btn.innerHTML = '<span class="material-symbols-outlined animate-spin" style="font-size:20px;">progress_activity</span>';
+  btn.disabled = true;
+
+  const form = e.target;
+  const data = {
+    name: form.querySelector('input[type="text"]').value,
+    email: form.querySelector('input[type="email"]').value,
+    project_type: form.querySelector('select').value,
+    budget: form.querySelectorAll('select')[1].value,
+    message: form.querySelector('textarea').value
+  };
+
+  try {
+    const res = await fetch('/api/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    const result = await res.json();
+    btn.style.display = 'none';
+    const successDiv = document.getElementById('successMsg');
+    if (result.token) {
+      successDiv.innerHTML = '<span class="material-symbols-outlined align-middle" style="color:#4ae176;">check_circle</span> <span class="ms-2 text-sm font-semibold" style="color:#4ae176;">Message sent! </span><a href="/chat?token=' + result.token + '" class="underline text-sm font-semibold mt-1 inline-block" style="color:#0070f3;">Open Chat →</a><p class="text-xs mt-2" style="color:#8b90a0;">Save this link to continue chatting: /chat?token=' + result.token + '</p>';
+    } else {
+      successDiv.innerHTML = '<span class="material-symbols-outlined align-middle" style="color:#4ae176;">check_circle</span> <span class="ms-2 text-sm font-semibold" style="color:#4ae176;">Message sent successfully!</span>';
+    }
+    successDiv.classList.remove('hidden');
+  } catch (err) {
+    btn.innerHTML = '<span data-en="Send Message" data-ar="إرسال الرسالة">Send Message</span><span class="material-symbols-outlined" style="font-size:20px;">send</span>';
+    btn.disabled = false;
+    alert('Failed to send message. Please try again.');
+  }
+});
+</script>
+</body>
+</html>

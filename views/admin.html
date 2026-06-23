@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en" class="dark" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DEMO — Admin Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&family=Noto+Sans+Arabic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        surface: { DEFAULT: '#051424', dim: '#051424', bright: '#2c3a4c' },
+        'surface-container': { DEFAULT: '#122131', low: '#0d1c2d', high: '#1c2b3c', highest: '#273647' },
+        'on-surface': { DEFAULT: '#d4e4fa', variant: '#c1c6d7' },
+        outline: { DEFAULT: '#8b90a0', variant: '#414754' },
+        primary: { DEFAULT: '#aec6ff', container: '#0070f3' },
+        secondary: { DEFAULT: '#4ae176', container: '#00b954' },
+        tertiary: { DEFAULT: '#c9beff', container: '#7759fb' },
+      },
+      fontFamily: {
+        sans: ['Inter', 'Noto Sans Arabic', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace'],
+      },
+    }
+  }
+}
+</script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #051424; color: #d4e4fa; }
+  .glass-panel { background: rgba(18, 33, 49, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.06); }
+  .sidebar-link { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-radius: 12px; color: #8b90a0; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+  .sidebar-link:hover { color: #d4e4fa; background: rgba(255,255,255,0.04); }
+  .sidebar-link.active { color: #fff; background: #0070f3; }
+  .panel { display: none; animation: fadeUp 0.3s ease-out; }
+  .panel.active { display: block; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .status-new { background: rgba(0,112,243,0.15); color: #aec6ff; }
+  .status-read { background: rgba(139,144,160,0.15); color: #8b90a0; }
+  .status-replied { background: rgba(74,225,118,0.15); color: #4ae176; }
+  input, textarea, select { outline: none; }
+  input:focus, textarea:focus, select:focus { border-color: #0070f3 !important; box-shadow: 0 0 0 2px rgba(0,112,243,0.2); }
+  .admin-editable { border: 1px dashed #414754; padding: 4px 8px; border-radius: 6px; }
+  .admin-editable:focus { border-color: #0070f3; background: rgba(0,112,243,0.05); }
+  #loginOverlay { position: fixed; inset: 0; z-index: 100; background: #051424; display: flex; align-items: center; justify-content: center; }
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- LOGIN OVERLAY -->
+<div id="loginOverlay">
+  <div class="glass-panel rounded-xl p-8 w-full max-w-sm">
+    <div class="flex items-center gap-2 mb-6">
+      <div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center" style="background:#0070f3;">
+        <span class="text-white font-mono font-bold text-sm">D</span>
+      </div>
+      <span class="font-mono font-bold text-lg">Admin Login</span>
+    </div>
+    <form id="loginForm" class="space-y-4">
+      <div>
+        <label class="block text-sm font-semibold mb-1" style="color:#c1c6d7;">Username</label>
+        <input type="text" id="loginUser" value="admin" class="w-full px-4 py-3 rounded-lg text-sm" style="background:#0d1c2d;border:1px solid #414754;color:#d4e4fa;">
+      </div>
+      <div>
+        <label class="block text-sm font-semibold mb-1" style="color:#c1c6d7;">Password</label>
+        <input type="password" id="loginPass" value="demo2024" class="w-full px-4 py-3 rounded-lg text-sm" style="background:#0d1c2d;border:1px solid #414754;color:#d4e4fa;">
+      </div>
+      <button type="submit" class="w-full py-3 rounded-lg font-semibold text-white" style="background:#0070f3;">Login</button>
+      <p id="loginError" class="text-sm text-center hidden" style="color:#ffb4ab;">Invalid credentials</p>
+    </form>
+  </div>
+</div>
+
+<!-- ADMIN LAYOUT -->
+<div class="flex min-h-screen" id="adminApp" style="display:none;">
+  <!-- Sidebar -->
+  <aside class="w-64 glass-panel flex flex-col p-4 fixed h-full" style="border-right:1px solid rgba(255,255,255,0.06);">
+    <div class="flex items-center gap-2 mb-8 px-2">
+      <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:#0070f3;">
+        <span class="text-white font-mono font-bold text-sm">D</span>
+      </div>
+      <span class="font-mono font-bold text-lg">DEMO</span>
+    </div>
+    <nav class="flex flex-col gap-1 flex-1">
+      <div class="sidebar-link active" data-panel="overview">
+        <span class="material-symbols-outlined" style="font-size:20px;">dashboard</span>
+        <span>Overview</span>
+      </div>
+      <div class="sidebar-link" data-panel="inquiries">
+        <span class="material-symbols-outlined" style="font-size:20px;">mail</span>
+        <span>Inquiries</span>
+      </div>
+      <div class="sidebar-link" data-panel="projects">
+        <span class="material-symbols-outlined" style="font-size:20px;">folder</span>
+        <span>Projects</span>
+      </div>
+      <div class="sidebar-link" data-panel="services">
+        <span class="material-symbols-outlined" style="font-size:20px;">payments</span>
+        <span>Services</span>
+      </div>
+      <div class="sidebar-link" data-panel="messages">
+        <span class="material-symbols-outlined" style="font-size:20px;">chat</span>
+        <span>Messages</span>
+        <span id="msgBadge" class="hidden ml-auto px-2 py-0.5 rounded-full text-xs font-bold" style="background:#ffb4ab;color:#051424;">0</span>
+      </div>
+    </nav>
+    <div class="sidebar-link" onclick="logout()" style="color:#ffb4ab;">
+      <span class="material-symbols-outlined" style="font-size:20px;">logout</span>
+      <span>Logout</span>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 ml-64 p-8">
+    <!-- OVERVIEW -->
+    <div class="panel active" id="panel-overview">
+      <h1 class="text-2xl font-bold mb-6">Dashboard Overview</h1>
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div class="glass-panel rounded-xl p-6 text-center">
+          <div class="text-3xl font-extrabold" style="color:#0070f3;" id="statInquiries">0</div>
+          <div class="text-sm mt-1 font-mono" style="color:#8b90a0;">Total Inquiries</div>
+        </div>
+        <div class="glass-panel rounded-xl p-6 text-center">
+          <div class="text-3xl font-extrabold" style="color:#4ae176;" id="statNewInquiries">0</div>
+          <div class="text-sm mt-1 font-mono" style="color:#8b90a0;">New Messages</div>
+        </div>
+        <div class="glass-panel rounded-xl p-6 text-center">
+          <div class="text-3xl font-extrabold" style="color:#c9beff;" id="statProjects">0</div>
+          <div class="text-sm mt-1 font-mono" style="color:#8b90a0;">Projects</div>
+        </div>
+        <div class="glass-panel rounded-xl p-6 text-center">
+          <div class="text-3xl font-extrabold" style="color:#aec6ff;" id="statServices">0</div>
+          <div class="text-sm mt-1 font-mono" style="color:#8b90a0;">Services</div>
+        </div>
+      </div>
+      <div class="glass-panel rounded-xl p-6">
+        <h2 class="font-bold mb-4">Recent Inquiries</h2>
+        <div id="recentInquiries" class="space-y-3">
+          <p style="color:#8b90a0;">Loading...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- INQUIRIES -->
+    <div class="panel" id="panel-inquiries">
+      <h1 class="text-2xl font-bold mb-6">Inquiries</h1>
+      <div id="inquiriesList" class="space-y-3">
+        <p style="color:#8b90a0;">Loading...</p>
+      </div>
+    </div>
+
+    <!-- PROJECTS -->
+    <div class="panel" id="panel-projects">
+      <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold">Projects</h1>
+        <button onclick="showProjectForm()" class="px-4 py-2 rounded-lg text-sm font-semibold text-white" style="background:#0070f3;">
+          <span class="material-symbols-outlined align-middle" style="font-size:18px;">add</span> Add Project
+        </button>
+      </div>
+      <div id="projectForm" class="glass-panel rounded-xl p-6 mb-6 hidden">
+        <h3 class="font-bold mb-4" id="projectFormTitle">Add New Project</h3>
+        <input type="hidden" id="projectEditId">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-sm mb-1" style="color:#c1c6d7;">Title (EN)</label>
+            <input type="text" id="pTitleEn" class="w-full px-4 py-2 rounded-lg text-sm" style="background:#0d1c2d;border:1px solid #414754;color:#d4e4fa;">
+          </div>
+          <div>
+            <label class="block text-sm mb-1" style="color:#c1c6d7;">Title (AR)</label>
+            <input type="text" id="pTitleAr" class="w-full px-4 py-2 rounded-lg text-sm" style="background:#0d1c2d;border:1px solid #414754;color:#d4e4fa;">
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-sm mb-1" style="color:#c1c6d7;">Description (EN)</label>
+            <textarea id="pDescEn" rows="2" class="w-full px-4 py-2 rounded-lg text-sm resize-none" style="background:#0d1c2d;border:1px solid #414754;color:#d4e4fa;"></textarea>
+          </div>
+          <div>
+            <label class="block text-sm mb-1" style="color:#c1c6d7;">Description (AR)</label>
+            <textarea id="pDescAr" rows="2" class="w-full px-4 py-2 rounded-lg text-sm resize-none" style="background:#0d1c2d;border:1px solid #414754;color:#d4e4fa;"></textarea>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div>
+            <label class="block text-sm mb-1" style="color:#c1c6d7;">Status</label>
+            <select id="pStatus" class="w-full px-4 py-2 rounded-lg text-sm" style="background:#0d1c2d;border:1px solid #414754;color:#d4e4fa;">
+              <option value="live">Live</option>
+              <option value="maintenance">Maintenance</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm mb-1" style="color:#c1c6d7;">Icon</label>
+            <input type="text" id="pIcon" value="code" class="w-full px-4 py-2 rounded-lg text-sm" style="background:#0d1c2d;border:1px solid #414754;color:#d4e4fa;">
+          </div>
+          <div>
+            <label class="block text-sm mb-1" style="color:#c1c6d7;">Gradient</label>
+            <input type="text" id="pGradient" value="linear-gradient(135deg,#0070f3 0%,#7759fb 100%)" class="w-full px-4 py-2 rounded-lg text-sm" style="background:#0d1c2d;border:1px solid #414754;color:#d4e4fa;">
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div>
+            <label class="block text-sm mb-1" style="color:#c1c6d7;">Tech Stack (comma-separated)</label>
+            <input type="text" id="pTech" class="w-full px-4 py-2 rounded-lg text-sm" style="background:#0d1c2d;border:1px solid #414754;color:#d4e4fa;" placeholder="React, Node.js, AI">
+          </div>
+          <div>
+            <label class="block text-sm mb-1" style="color:#c1c6d7;">GitHub URL</label>
+            <input type="text" id="pGithub" value="#" class="w-full px-4 py-2 rounded-lg text-sm" style="background:#0d1c2d;border:1px solid #414754;color:#d4e4fa;">
+          </div>
+          <div>
+            <label class="block text-sm mb-1" style="color:#c1c6d7;">Demo URL</label>
+            <input type="text" id="pDemo" value="#" class="w-full px-4 py-2 rounded-lg text-sm" style="background:#0d1c2d;border:1px solid #414754;color:#d4e4fa;">
+          </div>
+        </div>
+        <div class="flex gap-3">
+          <button onclick="saveProject()" class="px-6 py-2 rounded-lg text-sm font-semibold text-white" style="background:#0070f3;">Save</button>
+          <button onclick="hideProjectForm()" class="px-6 py-2 rounded-lg text-sm font-semibold" style="border:1px solid #414754;color:#8b90a0;">Cancel</button>
+        </div>
+      </div>
+      <div id="projectsList" class="space-y-3">
+        <p style="color:#8b90a0;">Loading...</p>
+      </div>
+    </div>
+
+    <!-- SERVICES -->
+    <div class="panel" id="panel-services">
+      <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold">Services & Pricing</h1>
+        <button onclick="showServiceForm()" class="px-4 py-2 rounded-lg text-sm font-semibold text-white" style="background:#0070f3;">
+          <span class="material-symbols-outlined align-middle" style="font-size:18px;">add</span> Add Service
+        </button>
+      </div>
+      <div id="serviceForm" class="glass-panel rounded-xl p-6 mb-6 hidden">
+        <h3 class="font-bold mb-4" id="serviceFormTitle">Add New Service</h3>
+        <input type="hidden" id="serviceEditId">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div>
+            <label class="block text-sm mb-1" style="color:#c1c6d7;">Name (EN)</label>
+            <input type="text" id="sNameEn" class="w-full px-4 py-2 rounded-lg text-sm" style="background:#0d1c2d;border:1px solid #414754;color:#d4e4fa;">
+          </div>
+          <div>
+            <label class="block text-sm mb-1" style="color:#c1c6d7;">Name (AR)</label>
+            <input type="text" id="sNameAr" class="w-full px-4 py-2 rounded-lg text-sm" style="background:#0d1c2d;border:1px solid #414754;color:#d4e4fa;">
+          </div>
+          <div>
+            <label class="block text-sm mb-1" style="color:#c1c6d7;">Price (EGP)</label>
+            <input type="number" id="sPrice" class="w-full px-4 py-2 rounded-lg text-sm" style="background:#0d1c2d;border:1px solid #414754;color:#d4e4fa;">
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-sm mb-1" style="color:#c1c6d7;">Description (EN)</label>
+            <textarea id="sDescEn" rows="2" class="w-full px-4 py-2 rounded-lg text-sm resize-none" style="background:#0d1c2d;border:1px solid #414754;color:#d4e4fa;"></textarea>
+          </div>
+          <div>
+            <label class="block text-sm mb-1" style="color:#c1c6d7;">Description (AR)</label>
+            <textarea id="sDescAr" rows="2" class="w-full px-4 py-2 rounded-lg text-sm resize-none" style="background:#0d1c2d;border:1px solid #414754;color:#d4e4fa;"></textarea>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-sm mb-1" style="color:#c1c6d7;">Features (EN, comma-separated)</label>
+            <input type="text" id="sFeaturesEn" class="w-full px-4 py-2 rounded-lg text-sm" style="background:#0d1c2d;border:1px solid #414754;color:#d4e4fa;" placeholder="Feature 1, Feature 2">
+          </div>
+          <div>
+            <label class="block text-sm mb-1" style="color:#c1c6d7;">Features (AR, comma-separated)</label>
+            <input type="text" id="sFeaturesAr" class="w-full px-4 py-2 rounded-lg text-sm" style="background:#0d1c2d;border:1px solid #414754;color:#d4e4fa;" placeholder="ميزة ١, ميزة ٢">
+          </div>
+        </div>
+        <div class="flex items-center gap-4 mb-4">
+          <label class="flex items-center gap-2 text-sm" style="color:#c1c6d7;">
+            <input type="checkbox" id="sPopular" class="rounded"> Most Popular
+          </label>
+          <div>
+            <label class="block text-sm mb-1" style="color:#c1c6d7;">Sort Order</label>
+            <input type="number" id="sSort" value="0" class="w-20 px-4 py-2 rounded-lg text-sm" style="background:#0d1c2d;border:1px solid #414754;color:#d4e4fa;">
+          </div>
+        </div>
+        <div class="flex gap-3">
+          <button onclick="saveService()" class="px-6 py-2 rounded-lg text-sm font-semibold text-white" style="background:#0070f3;">Save</button>
+          <button onclick="hideServiceForm()" class="px-6 py-2 rounded-lg text-sm font-semibold" style="border:1px solid #414754;color:#8b90a0;">Cancel</button>
+        </div>
+      </div>
+      <div id="servicesList" class="space-y-3">
+        <p style="color:#8b90a0;">Loading...</p>
+      </div>
+    </div>
+
+    <!-- MESSAGES -->
+    <div class="panel" id="panel-messages">
+      <div id="msgListView">
+        <h1 class="text-2xl font-bold mb-6">Messages</h1>
+        <div id="conversationsList" class="space-y-3">
+          <p style="color:#8b90a0;">Loading...</p>
+        </div>
+      </div>
+      <div id="msgChatView" class="hidden">
+        <div class="flex items-center gap-3 mb-6">
+          <button onclick="backToConversations()" class="p-2 rounded-lg" style="background:rgba(255,255,255,0.04);color:#8b90a0;">
+            <span class="material-symbols-outlined" style="font-size:20px;">arrow_back</span>
+          </button>
+          <div>
+            <h1 class="text-xl font-bold" id="chatUserName">User</h1>
+            <p class="text-xs font-mono" style="color:#8b90a0;" id="chatUserEmail">user@email.com</p>
+          </div>
+          <div class="ml-auto flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full" style="background:#4ae176;"></span>
+            <a id="chatLinkBtn" href="#" target="_blank" class="text-xs font-mono px-3 py-1 rounded-lg" style="background:rgba(0,112,243,0.15);color:#0070f3;">Open User Chat</a>
+          </div>
+        </div>
+        <div id="adminMessagesContainer" class="space-y-3 mb-4 p-4 rounded-xl" style="background:rgba(5,20,36,0.5);max-height:50vh;overflow-y:auto;">
+          <p style="color:#8b90a0;">Loading messages...</p>
+        </div>
+        <form id="adminMessageForm" class="flex gap-3">
+          <input type="text" id="adminMessageInput" placeholder="Type a message..." class="flex-1 px-4 py-3 rounded-lg text-sm" style="background:#0d1c2d;border:1px solid #414754;color:#d4e4fa;" autocomplete="off">
+          <button type="submit" class="px-5 py-3 rounded-lg font-semibold text-white flex items-center gap-2" style="background:#0070f3;">
+            <span class="material-symbols-outlined" style="font-size:20px;">send</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+let authToken = '';
+
+// === AUTH ===
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const user = document.getElementById('loginUser').value;
+  const pass = document.getElementById('loginPass').value;
+  authToken = 'Basic ' + btoa(user + ':' + pass);
+
+  try {
+    const res = await fetch('/api/stats', { headers: { 'Authorization': authToken } });
+    if (res.ok) {
+      document.getElementById('loginOverlay').style.display = 'none';
+      document.getElementById('adminApp').style.display = 'flex';
+      loadDashboard();
+    } else {
+      document.getElementById('loginError').classList.remove('hidden');
+    }
+  } catch (err) {
+    document.getElementById('loginError').classList.remove('hidden');
+  }
+});
+
+function logout() {
+  authToken = '';
+  document.getElementById('adminApp').style.display = 'none';
+  document.getElementById('loginOverlay').style.display = 'flex';
+}
+
+function apiHeaders() {
+  return { 'Content-Type': 'application/json', 'Authorization': authToken };
+}
+
+// === DASHBOARD ===
+async function loadDashboard() {
+  try {
+    const [statsRes, inquiriesRes] = await Promise.all([
+      fetch('/api/stats', { headers: { 'Authorization': authToken } }),
+      fetch('/api/admin/inquiries', { headers: { 'Authorization': authToken } })
+    ]);
+    if (!statsRes.ok || !inquiriesRes.ok) {
+      document.getElementById('recentInquiries').innerHTML = '<p style="color:#ffb4ab;">Failed to load data. Check server and try again.</p>';
+      return;
+    }
+    const stats = await statsRes.json();
+    const inquiries = await inquiriesRes.json();
+
+    document.getElementById('statInquiries').textContent = stats.total_inquiries;
+    document.getElementById('statNewInquiries').textContent = stats.new_inquiries;
+    document.getElementById('statProjects').textContent = stats.total_projects;
+    document.getElementById('statServices').textContent = stats.total_services;
+
+    const recentDiv = document.getElementById('recentInquiries');
+    if (inquiries.length === 0) {
+      recentDiv.innerHTML = '<p style="color:#8b90a0;">No inquiries yet.</p>';
+    } else {
+      recentDiv.innerHTML = inquiries.slice(0, 5).map(inq => `
+        <div class="flex items-center justify-between p-3 rounded-lg" style="background:#0d1c2d;">
+          <div>
+            <span class="font-semibold text-sm">${inq.name}</span>
+            <span class="text-xs ml-2" style="color:#8b90a0;">${inq.email}</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="text-xs font-mono px-2 py-1 rounded-full status-${inq.status}">${inq.status}</span>
+            <span class="text-xs font-mono" style="color:#8b90a0;">${inq.created_at}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+  } catch (err) {
+    console.error('Dashboard load error:', err);
+    document.getElementById('recentInquiries').innerHTML = '<p style="color:#ffb4ab;">Network error. Make sure the server is running.</p>';
+  }
+}
+
+// === INQUIRIES ===
+async function loadInquiries() {
+  try {
+    const res = await fetch('/api/admin/inquiries', { headers: { 'Authorization': authToken } });
+    const inquiries = await res.json();
+    const div = document.getElementById('inquiriesList');
+    if (inquiries.length === 0) {
+      div.innerHTML = '<p style="color:#8b90a0;">No inquiries yet.</p>';
+      return;
+    }
+    div.innerHTML = inquiries.map(inq => `
+      <div class="glass-panel rounded-xl p-5">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-3">
+            <span class="font-bold">${inq.name}</span>
+            <span class="font-mono text-xs" style="color:#8b90a0;">${inq.email}</span>
+            <span class="text-xs font-mono px-2 py-1 rounded-full status-${inq.status}">${inq.status}</span>
+          </div>
+          <span class="text-xs font-mono" style="color:#8b90a0;">${inq.created_at}</span>
+        </div>
+        <div class="flex items-center gap-4 mb-3 text-xs" style="color:#c1c6d7;">
+          <span>Type: <strong>${inq.project_type}</strong></span>
+          <span>Budget: <strong>${inq.budget || 'N/A'}</strong></span>
+        </div>
+        <p class="text-sm mb-4" style="color:#c1c6d7;">${inq.message}</p>
+        <div class="flex gap-2">
+          <button onclick="updateInquiryStatus(${inq.id}, 'read')" class="px-3 py-1 rounded text-xs font-semibold" style="background:rgba(139,144,160,0.15);color:#8b90a0;">Mark Read</button>
+          <button onclick="updateInquiryStatus(${inq.id}, 'replied')" class="px-3 py-1 rounded text-xs font-semibold" style="background:rgba(74,225,118,0.15);color:#4ae176;">Mark Replied</button>
+        </div>
+      </div>
+    `).join('');
+  } catch (err) {
+    console.error('Inquiries load error:', err);
+  }
+}
+
+async function updateInquiryStatus(id, status) {
+  await fetch(`/api/admin/inquiries/${id}`, {
+    method: 'PUT',
+    headers: apiHeaders(),
+    body: JSON.stringify({ status })
+  });
+  loadInquiries();
+  loadDashboard();
+}
+
+// === PROJECTS CRUD ===
+async function loadProjects() {
+  try {
+    const res = await fetch('/api/projects');
+    const projects = await res.json();
+    const div = document.getElementById('projectsList');
+    if (projects.length === 0) {
+      div.innerHTML = '<p style="color:#8b90a0;">No projects yet.</p>';
+      return;
+    }
+    div.innerHTML = projects.map(p => `
+      <div class="glass-panel rounded-xl p-5 flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-lg flex items-center justify-center" style="background:${p.gradient};">
+            <span class="material-symbols-outlined text-white" style="font-size:24px;">${p.icon}</span>
+          </div>
+          <div>
+            <h3 class="font-bold">${p.title_en}</h3>
+            <p class="text-xs" style="color:#8b90a0;">${p.title_ar} · ${p.status}</p>
+          </div>
+        </div>
+        <div class="flex gap-2">
+          <button onclick='editProject(${JSON.stringify(p).replace(/'/g, "&#39;")})' class="p-2 rounded-lg" style="background:rgba(0,112,243,0.15);color:#0070f3;">
+            <span class="material-symbols-outlined" style="font-size:18px;">edit</span>
+          </button>
+          <button onclick="deleteProject(${p.id})" class="p-2 rounded-lg" style="background:rgba(255,180,171,0.15);color:#ffb4ab;">
+            <span class="material-symbols-outlined" style="font-size:18px;">delete</span>
+          </button>
+        </div>
+      </div>
+    `).join('');
+  } catch (err) {
+    console.error('Projects load error:', err);
+  }
+}
+
+function showProjectForm(project) {
+  document.getElementById('projectForm').classList.remove('hidden');
+  document.getElementById('projectFormTitle').textContent = project ? 'Edit Project' : 'Add New Project';
+  if (project) {
+    document.getElementById('projectEditId').value = project.id;
+    document.getElementById('pTitleEn').value = project.title_en;
+    document.getElementById('pTitleAr').value = project.title_ar;
+    document.getElementById('pDescEn').value = project.description_en;
+    document.getElementById('pDescAr').value = project.description_ar;
+    document.getElementById('pStatus').value = project.status;
+    document.getElementById('pIcon').value = project.icon;
+    document.getElementById('pGradient').value = project.gradient;
+    document.getElementById('pTech').value = JSON.parse(project.tech_stack || '[]').join(', ');
+    document.getElementById('pGithub').value = project.github_url;
+    document.getElementById('pDemo').value = project.demo_url;
+  }
+}
+
+function hideProjectForm() {
+  document.getElementById('projectForm').classList.add('hidden');
+  document.getElementById('projectEditId').value = '';
+}
+
+function editProject(p) {
+  showProjectForm(p);
+}
+
+async function saveProject() {
+  const id = document.getElementById('projectEditId').value;
+  const data = {
+    title_en: document.getElementById('pTitleEn').value,
+    title_ar: document.getElementById('pTitleAr').value,
+    description_en: document.getElementById('pDescEn').value,
+    description_ar: document.getElementById('pDescAr').value,
+    status: document.getElementById('pStatus').value,
+    icon: document.getElementById('pIcon').value,
+    gradient: document.getElementById('pGradient').value,
+    tech_stack: document.getElementById('pTech').value.split(',').map(s => s.trim()).filter(Boolean),
+    github_url: document.getElementById('pGithub').value,
+    demo_url: document.getElementById('pDemo').value,
+    sort_order: 0
+  };
+  const url = id ? `/api/projects/${id}` : '/api/projects';
+  await fetch(url, { method: id ? 'PUT' : 'POST', headers: apiHeaders(), body: JSON.stringify(data) });
+  hideProjectForm();
+  loadProjects();
+}
+
+async function deleteProject(id) {
+  if (!confirm('Delete this project?')) return;
+  await fetch(`/api/projects/${id}`, { method: 'DELETE', headers: apiHeaders() });
+  loadProjects();
+}
+
+// === SERVICES CRUD ===
+async function loadServices() {
+  try {
+    const res = await fetch('/api/services');
+    const services = await res.json();
+    const div = document.getElementById('servicesList');
+    if (services.length === 0) {
+      div.innerHTML = '<p style="color:#8b90a0;">No services yet.</p>';
+      return;
+    }
+    div.innerHTML = services.map(s => `
+      <div class="glass-panel rounded-xl p-5 flex items-center justify-between">
+        <div>
+          <div class="flex items-center gap-3">
+            <h3 class="font-bold">${s.name_en}</h3>
+            ${s.is_popular ? '<span class="text-xs font-mono px-2 py-1 rounded-full" style="background:rgba(0,112,243,0.15);color:#0070f3;">Popular</span>' : ''}
+          </div>
+          <p class="text-xs mt-1" style="color:#8b90a0;">${s.name_ar} · ${s.price_egp.toLocaleString('en-EG')} EGP</p>
+        </div>
+        <div class="flex gap-2">
+          <button onclick='editService(${JSON.stringify(s).replace(/'/g, "&#39;")})' class="p-2 rounded-lg" style="background:rgba(0,112,243,0.15);color:#0070f3;">
+            <span class="material-symbols-outlined" style="font-size:18px;">edit</span>
+          </button>
+          <button onclick="deleteService(${s.id})" class="p-2 rounded-lg" style="background:rgba(255,180,171,0.15);color:#ffb4ab;">
+            <span class="material-symbols-outlined" style="font-size:18px;">delete</span>
+          </button>
+        </div>
+      </div>
+    `).join('');
+  } catch (err) {
+    console.error('Services load error:', err);
+  }
+}
+
+function showServiceForm(service) {
+  document.getElementById('serviceForm').classList.remove('hidden');
+  document.getElementById('serviceFormTitle').textContent = service ? 'Edit Service' : 'Add New Service';
+  if (service) {
+    document.getElementById('serviceEditId').value = service.id;
+    document.getElementById('sNameEn').value = service.name_en;
+    document.getElementById('sNameAr').value = service.name_ar;
+    document.getElementById('sPrice').value = service.price_egp;
+    document.getElementById('sDescEn').value = service.description_en;
+    document.getElementById('sDescAr').value = service.description_ar;
+    document.getElementById('sFeaturesEn').value = JSON.parse(service.features_en || '[]').join(', ');
+    document.getElementById('sFeaturesAr').value = JSON.parse(service.features_ar || '[]').join(', ');
+    document.getElementById('sPopular').checked = !!service.is_popular;
+    document.getElementById('sSort').value = service.sort_order;
+  }
+}
+
+function hideServiceForm() {
+  document.getElementById('serviceForm').classList.add('hidden');
+  document.getElementById('serviceEditId').value = '';
+}
+
+function editService(s) {
+  showServiceForm(s);
+}
+
+async function saveService() {
+  const id = document.getElementById('serviceEditId').value;
+  const data = {
+    name_en: document.getElementById('sNameEn').value,
+    name_ar: document.getElementById('sNameAr').value,
+    price_egp: parseInt(document.getElementById('sPrice').value),
+    description_en: document.getElementById('sDescEn').value,
+    description_ar: document.getElementById('sDescAr').value,
+    features_en: document.getElementById('sFeaturesEn').value.split(',').map(s => s.trim()).filter(Boolean),
+    features_ar: document.getElementById('sFeaturesAr').value.split(',').map(s => s.trim()).filter(Boolean),
+    is_popular: document.getElementById('sPopular').checked ? 1 : 0,
+    sort_order: parseInt(document.getElementById('sSort').value) || 0
+  };
+  const url = id ? `/api/services/${id}` : '/api/services';
+  await fetch(url, { method: id ? 'PUT' : 'POST', headers: apiHeaders(), body: JSON.stringify(data) });
+  hideServiceForm();
+  loadServices();
+}
+
+async function deleteService(id) {
+  if (!confirm('Delete this service?')) return;
+  await fetch(`/api/services/${id}`, { method: 'DELETE', headers: apiHeaders() });
+  loadServices();
+}
+
+// === MESSAGES ===
+let activeChatInquiryId = null;
+let msgPollInterval = null;
+
+async function loadConversations() {
+  try {
+    const res = await fetch('/api/admin/messages', { headers: { 'Authorization': authToken } });
+    const convos = await res.json();
+    const div = document.getElementById('conversationsList');
+    let totalUnread = 0;
+    convos.forEach(c => totalUnread += (c.unread_count || 0));
+    const badge = document.getElementById('msgBadge');
+    if (totalUnread > 0) {
+      badge.textContent = totalUnread;
+      badge.classList.remove('hidden');
+    } else {
+      badge.classList.add('hidden');
+    }
+    if (convos.length === 0) {
+      div.innerHTML = '<p style="color:#8b90a0;">No conversations yet.</p>';
+      return;
+    }
+    div.innerHTML = convos.map(c => `
+      <div class="glass-panel rounded-xl p-4 flex items-center justify-between cursor-pointer hover:scale-[1.01] transition-transform" onclick="openChat(${c.inquiry_id}, '${escapeAttr(c.name)}', '${escapeAttr(c.email)}', '${c.session_token}')">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm" style="background:rgba(0,112,243,0.15);color:#0070f3;">${c.name.charAt(0).toUpperCase()}</div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-semibold text-sm">${c.name}</span>
+              ${c.unread_count > 0 ? '<span class="px-1.5 py-0.5 rounded-full text-xs font-bold" style="background:#0070f3;color:#fff;">' + c.unread_count + '</span>' : ''}
+            </div>
+            <p class="text-xs truncate max-w-xs" style="color:#8b90a0;">${c.last_message ? escapeHtml(c.last_message) : 'No messages yet'}</p>
+          </div>
+        </div>
+        <span class="text-xs font-mono" style="color:#8b90a0;">${c.last_message_at ? formatTime(c.last_message_at) : ''}</span>
+      </div>
+    `).join('');
+  } catch (err) {
+    console.error('Conversations load error:', err);
+  }
+}
+
+function escapeAttr(str) {
+  return (str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function formatTime(ts) {
+  if (!ts) return '';
+  const d = new Date(ts + 'Z');
+  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+async function openChat(inquiryId, name, email, token) {
+  activeChatInquiryId = inquiryId;
+  document.getElementById('msgListView').classList.add('hidden');
+  document.getElementById('msgChatView').classList.remove('hidden');
+  document.getElementById('chatUserName').textContent = name;
+  document.getElementById('chatUserEmail').textContent = email;
+  document.getElementById('chatLinkBtn').href = '/chat?token=' + token;
+  await loadChatMessages(inquiryId);
+  startMsgPolling(inquiryId);
+}
+
+function backToConversations() {
+  activeChatInquiryId = null;
+  document.getElementById('msgListView').classList.remove('hidden');
+  document.getElementById('msgChatView').classList.add('hidden');
+  if (msgPollInterval) { clearInterval(msgPollInterval); msgPollInterval = null; }
+  loadConversations();
+}
+
+async function loadChatMessages(inquiryId) {
+  try {
+    const res = await fetch('/api/admin/messages/' + inquiryId, { headers: { 'Authorization': authToken } });
+    const data = await res.json();
+    const container = document.getElementById('adminMessagesContainer');
+    if (!data.messages.length) {
+      container.innerHTML = '<p class="text-center py-4 text-sm" style="color:#8b90a0;">No messages yet. Send a message to start.</p>';
+      return;
+    }
+    container.innerHTML = data.messages.map(m => `
+      <div class="flex ${m.sender === 'admin' ? 'justify-end' : 'justify-start'}">
+        <div class="${m.sender === 'admin' ? 'msg-admin' : 'msg-user'} rounded-xl px-4 py-3 max-w-xs md:max-w-md" style="${m.sender === 'admin' ? 'background:rgba(0,112,243,0.15);border:1px solid rgba(0,112,243,0.3);' : 'background:rgba(74,225,118,0.1);border:1px solid rgba(74,225,118,0.2);'}">
+          <p class="text-sm">${escapeHtml(m.message)}</p>
+          <p class="text-xs mt-1 font-mono" style="color:#8b90a0;">${formatTime(m.created_at)}${m.sender === 'admin' ? ' · You' : ''}</p>
+        </div>
+      </div>
+    `).join('');
+    container.scrollTop = container.scrollHeight;
+  } catch (err) {
+    console.error('Chat messages error:', err);
+  }
+}
+
+document.getElementById('adminMessageForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!activeChatInquiryId) return;
+  const input = document.getElementById('adminMessageInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  try {
+    await fetch('/api/admin/messages/' + activeChatInquiryId, {
+      method: 'POST',
+      headers: apiHeaders(),
+      body: JSON.stringify({ message: msg })
+    });
+    await loadChatMessages(activeChatInquiryId);
+  } catch (err) {
+    console.error('Send message error:', err);
+  }
+});
+
+function startMsgPolling(inquiryId) {
+  if (msgPollInterval) clearInterval(msgPollInterval);
+  msgPollInterval = setInterval(async () => {
+    if (activeChatInquiryId !== inquiryId) return;
+    try {
+      await loadChatMessages(inquiryId);
+      loadConversations();
+    } catch (err) {}
+  }, 3000);
+}
+
+// Navigation update for messages
+document.querySelectorAll('.sidebar-link[data-panel]').forEach(link => {
+  link.addEventListener('click', () => {
+    document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+    link.classList.add('active');
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + link.dataset.panel).classList.add('active');
+    const panel = link.dataset.panel;
+    if (panel === 'inquiries') loadInquiries();
+    else if (panel === 'projects') loadProjects();
+    else if (panel === 'services') loadServices();
+    else if (panel === 'messages') { loadConversations(); backToConversations(); }
+  });
+});
+</script>
+</body>
+</html>
